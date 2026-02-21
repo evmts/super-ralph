@@ -80,11 +80,8 @@ export type SuperRalphProps = {
   children?: ReactNode;
 };
 
-function getAgent(agentOrTuple: any | [any, any]): { agent: any; fallback?: any } {
-  if (Array.isArray(agentOrTuple)) {
-    return { agent: agentOrTuple[0], fallback: agentOrTuple[1] };
-  }
-  return { agent: agentOrTuple };
+function normalizeAgent(agentOrArray: any | any[]): any | any[] {
+  return agentOrArray; // Just return as-is, Task handles arrays now
 }
 
 export function SuperRalph({
@@ -133,17 +130,17 @@ export function SuperRalph({
 
   const { prefix = "📝", mainBranch = "main", emojiPrefixes = "✨ feat, 🐛 fix, ♻️ refactor, 📝 docs, 🧪 test" } = commitConfig;
 
-  const planningAgents = getAgent(agents.planning);
-  const implementationAgents = getAgent(agents.implementation);
-  const testingAgents = getAgent(agents.testing);
-  const reviewingAgents = getAgent(agents.reviewing);
-  const reportingAgents = getAgent(agents.reporting);
+  const planningAgent = normalizeAgent(agents.planning);
+  const implementationAgent = normalizeAgent(agents.implementation);
+  const testingAgent = normalizeAgent(agents.testing);
+  const reviewingAgent = normalizeAgent(agents.reviewing);
+  const reportingAgent = normalizeAgent(agents.reporting);
 
   return (
     <Ralph until={false} maxIterations={Infinity} onMaxReached="return-last">
       <Parallel maxConcurrency={maxConcurrency}>
         {!skipPhases.has("PROGRESS") && (customUpdateProgress || (
-          <Task id="update-progress" output={outputs.progress} agent={reportingAgents.agent} fallbackAgent={reportingAgents.fallback} retries={taskRetries}>
+          <Task id="update-progress" output={outputs.progress} agent={reportingAgent} retries={taskRetries}>
             <UpdateProgressPrompt
               projectName={projectName}
               progressFile={progressFile}
@@ -158,7 +155,7 @@ export function SuperRalph({
         ) : (
           <Parallel maxConcurrency={maxConcurrency}>
             {focuses.map(({ id, name }) => (
-              <Task key={id} id={`codebase-review:${id}`} output={outputs.category_review} agent={reviewingAgents.agent} fallbackAgent={reviewingAgents.fallback} retries={taskRetries}>
+              <Task key={id} id={`codebase-review:${id}`} output={outputs.category_review} agent={reviewingAgent} retries={taskRetries}>
                 <CategoryReviewPrompt categoryId={id} categoryName={name} relevantDirs={focusDirs[id] ?? null} />
               </Task>
             ))}
@@ -166,7 +163,7 @@ export function SuperRalph({
         ))}
 
         {!skipPhases.has("DISCOVER") && (customDiscover || (
-          <Task id="discover" output={outputs.discover} agent={planningAgents.agent} fallbackAgent={planningAgents.fallback} retries={taskRetries}>
+          <Task id="discover" output={outputs.discover} agent={planningAgent} retries={taskRetries}>
             <DiscoverPrompt
               projectName={projectName}
               specsPath={specsPath}
@@ -184,7 +181,7 @@ export function SuperRalph({
             {focuses.map(({ id, name }) => {
               const suiteInfo = focusTestSuites[id] ?? { suites: [], setupHints: [], testDirs: [] };
               return (
-                <Task key={id} id={`integration-test:${id}`} output={outputs.integration_test} agent={testingAgents.agent} fallbackAgent={testingAgents.fallback} retries={taskRetries}>
+                <Task key={id} id={`integration-test:${id}`} output={outputs.integration_test} agent={testingAgent} retries={taskRetries}>
                   <IntegrationTestPrompt
                     categoryId={id}
                     categoryName={name}
@@ -209,7 +206,7 @@ export function SuperRalph({
             <Worktree key={ticket.id} id={`wt-${ticket.id}`} path={`/tmp/workflow-wt-${ticket.id}`}>
               <Sequence skipIf={ctx.outputMaybe(outputs.report, { nodeId: `${ticket.id}:report` })?.status === "complete"}>
                 {customResearch || (
-                  <Task id={`${ticket.id}:research`} output={outputs.research} agent={planningAgents.agent} fallbackAgent={planningAgents.fallback} retries={taskRetries}>
+                  <Task id={`${ticket.id}:research`} output={outputs.research} agent={planningAgent} retries={taskRetries}>
                     <ResearchPrompt
                       ticketId={ticket.id}
                       ticketTitle={ticket.title}
@@ -224,7 +221,7 @@ export function SuperRalph({
                 )}
 
                 {customPlan || (
-                  <Task id={`${ticket.id}:plan`} output={outputs.plan} agent={planningAgents.agent} fallbackAgent={planningAgents.fallback} retries={taskRetries}>
+                  <Task id={`${ticket.id}:plan`} output={outputs.plan} agent={planningAgent} retries={taskRetries}>
                     <PlanPrompt
                       ticketId={ticket.id}
                       ticketTitle={ticket.title}
@@ -270,7 +267,7 @@ export function SuperRalph({
                     return (
                       <>
                         {customImplement || (
-                          <Task id={`${ticket.id}:implement`} output={outputs.implement} agent={implementationAgents.agent} fallbackAgent={implementationAgents.fallback} retries={taskRetries}>
+                          <Task id={`${ticket.id}:implement`} output={outputs.implement} agent={implementationAgent} retries={taskRetries}>
                             <ImplementPrompt
                               ticketId={ticket.id}
                               ticketTitle={ticket.title}
@@ -294,7 +291,7 @@ export function SuperRalph({
                         )}
 
                         {customTest || (
-                          <Task id={`${ticket.id}:test`} output={outputs.test_results} agent={testingAgents.agent} fallbackAgent={testingAgents.fallback} retries={taskRetries}>
+                          <Task id={`${ticket.id}:test`} output={outputs.test_results} agent={testingAgent} retries={taskRetries}>
                             <TestPrompt
                               ticketId={ticket.id}
                               ticketTitle={ticket.title}
@@ -311,7 +308,7 @@ export function SuperRalph({
                         )}
 
                         {customBuildVerify || (
-                          <Task id={`${ticket.id}:build-verify`} output={outputs.build_verify} agent={testingAgents.agent} fallbackAgent={testingAgents.fallback} retries={taskRetries}>
+                          <Task id={`${ticket.id}:build-verify`} output={outputs.build_verify} agent={testingAgent} retries={taskRetries}>
                             <BuildVerifyPrompt
                               ticketId={ticket.id}
                               ticketTitle={ticket.title}
@@ -325,7 +322,7 @@ export function SuperRalph({
 
                         <Parallel maxConcurrency={maxConcurrency}>
                           {customSpecReview || (
-                            <Task id={`${ticket.id}:spec-review`} output={outputs.spec_review} agent={reviewingAgents.agent} fallbackAgent={reviewingAgents.fallback} retries={taskRetries}>
+                            <Task id={`${ticket.id}:spec-review`} output={outputs.spec_review} agent={reviewingAgent} retries={taskRetries}>
                               <SpecReviewPrompt
                                 ticketId={ticket.id}
                                 ticketTitle={ticket.title}
@@ -345,7 +342,7 @@ export function SuperRalph({
                           )}
 
                           {customCodeReview || (
-                            <Task id={`${ticket.id}:code-review`} output={outputs.code_review} agent={reviewingAgents.agent} fallbackAgent={reviewingAgents.fallback} retries={taskRetries}>
+                            <Task id={`${ticket.id}:code-review`} output={outputs.code_review} agent={reviewingAgent} retries={taskRetries}>
                               <CodeReviewPrompt
                                 ticketId={ticket.id}
                                 ticketTitle={ticket.title}
@@ -359,7 +356,7 @@ export function SuperRalph({
                         </Parallel>
 
                         {customReviewFix || (!noReviewIssues && (
-                          <Task id={`${ticket.id}:review-fix`} output={outputs.review_fix} agent={implementationAgents.agent} fallbackAgent={implementationAgents.fallback} retries={taskRetries}>
+                          <Task id={`${ticket.id}:review-fix`} output={outputs.review_fix} agent={implementationAgent} retries={taskRetries}>
                             <ReviewFixPrompt
                               ticketId={ticket.id}
                               ticketTitle={ticket.title}
@@ -383,7 +380,7 @@ export function SuperRalph({
                 </Sequence>
 
                 {customReport || (
-                  <Task id={`${ticket.id}:report`} output={outputs.report} agent={reportingAgents.agent} fallbackAgent={reportingAgents.fallback} retries={taskRetries}>
+                  <Task id={`${ticket.id}:report`} output={outputs.report} agent={reportingAgent} retries={taskRetries}>
                     <ReportPrompt
                       ticketId={ticket.id}
                       ticketTitle={ticket.title}
