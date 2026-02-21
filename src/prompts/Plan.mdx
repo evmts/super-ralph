@@ -1,0 +1,50 @@
+PLANNING PHASE — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Description: {props.ticketDescription}
+Category: {props.ticketCategory}
+Acceptance Criteria:
+{(props.acceptanceCriteria ?? []).map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+## Research Context
+
+Read the context file first: {props.contextFilePath}
+
+{props.researchSummary ? `Research summary: ${props.researchSummary}` : ''}
+
+## Your Task
+
+Create a detailed implementation plan with TDD approach.
+
+1. **Break down the work** into small, atomic steps (one function, one route, one test per step)
+2. **Order the steps** — tests FIRST, then implementation
+3. **Identify files** to create and modify
+4. **Identify tests** — both unit tests and integration tests
+5. **Note risks** or potential issues
+6. **Write the plan** to {props.planFilePath}
+
+## TDD Plan Format
+
+The plan file MUST follow TDD ordering:
+
+{props.tddPatterns && props.tddPatterns.length > 0
+  ? props.tddPatterns.map(p => `${p}`).join('\n\n')
+  : 'Write tests BEFORE implementation, then make them pass.'}
+
+## Plan File Contents
+
+- Overview of the approach
+- TDD step order (tests before implementation)
+- Files to create/modify (with specific function signatures)
+- Tests to write (unit + integration)
+- Risks and mitigations
+- How to verify against acceptance criteria
+
+## Commit
+
+After writing the plan file:
+```
+git add {props.planFilePath}
+git commit -m "{props.commitPrefix || '📝'} docs({props.ticketCategory}): create plan for {props.ticketId}"
+git pull --rebase origin {props.mainBranch || 'main'} && git push
+```

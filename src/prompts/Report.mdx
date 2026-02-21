@@ -1,0 +1,32 @@
+COMPLETION REPORT — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Category: {props.ticketCategory}
+
+## Acceptance Criteria
+
+{(props.acceptanceCriteria ?? []).map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+## Review Status
+
+- Spec review severity: {props.specSeverity}
+- Code review severity: {props.codeSeverity}
+- All issues resolved: {props.allIssuesResolved}
+- Review rounds: {props.reviewRounds}
+
+## Test Results
+
+{props.testResults && props.testResults.length > 0
+  ? props.testResults.map(r => `- ${r.name}: ${r.status}`).join('\n')
+  : 'No test results provided'}
+
+## Your Task
+
+1. Verify each acceptance criterion is met
+2. Verify all tests pass
+3. Summarize what was accomplished
+4. Note any struggles or lessons learned
+5. Determine final status:
+   - "complete" — All acceptance criteria met, all tests pass, reviews approved
+   - "partial" — Some criteria met but work remains
+   - "blocked" — Cannot proceed due to external dependency

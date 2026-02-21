@@ -1,0 +1,51 @@
+REVIEW FIX PHASE — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Category: {props.ticketCategory}
+
+Two reviews have been completed. Fix ALL issues from BOTH reviews.
+
+## Spec Review Issues
+Severity: {props.specSeverity}
+Feedback: {props.specFeedback}
+Issues:
+{props.specIssues && props.specIssues.length > 0 ? props.specIssues.map((issue, i) => `${i + 1}. ${issue}`).join('\n') : 'None'}
+
+## Code Review Issues
+Severity: {props.codeSeverity}
+Feedback: {props.codeFeedback}
+Issues:
+{props.codeIssues && props.codeIssues.length > 0 ? props.codeIssues.map((issue, i) => `${i + 1}. ${issue}`).join('\n') : 'None'}
+
+## Your Task
+
+For EACH issue from both reviews:
+1. Read the relevant file
+2. Determine if the issue is valid or a false positive
+3. If valid: make the fix
+4. If false positive: document why in your output
+5. After each fix, run relevant validation commands:
+{props.validationCommands && props.validationCommands.length > 0
+  ? props.validationCommands.map(c => `   - ${c}`).join('\n')
+  : '   - Run formatters and tests'}
+
+## TDD for Fixes
+
+If a fix requires new behavior:
+1. Write a test for the expected behavior FIRST
+2. Verify the test fails
+3. Make the fix
+4. Verify the test passes
+
+## GIT COMMIT — MANDATORY (DO NOT SKIP)
+
+You MUST commit and push your changes before finishing. Uncommitted work is lost work.
+
+1. `git add` the relevant files (never add generated artifacts or binaries)
+2. `git commit -m "{props.commitPrefix || 'EMOJI'} type(scope): description"` — atomic commits, one fix per commit. Do NOT batch all fixes into one commit.
+3. `git pull --rebase origin {props.mainBranch || 'main'}`
+4. `git push`
+
+{props.emojiPrefixes ? `Emoji prefixes: ${props.emojiPrefixes}` : 'Use conventional commit prefixes'}
+
+**If you do not commit and push, your work does not count. This is non-negotiable.**

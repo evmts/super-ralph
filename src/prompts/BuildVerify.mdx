@@ -1,0 +1,28 @@
+BUILD VERIFICATION — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Category: {props.ticketCategory}
+
+Verify that ALL components of the {props.projectName} platform compile and build successfully.
+This is the equivalent of a full CI build check.
+
+## Build Steps
+
+{props.buildSteps && props.buildSteps.length > 0
+  ? props.buildSteps.map((step, i) => `### ${i + 1}. ${step.name}\n\`\`\`\n${step.command}\n\`\`\`\n${step.description}\n${step.skipCondition ? `If ${step.skipCondition}, note "${step.skipNote || 'N/A'}".` : ''}`).join('\n\n')
+  : '### Build all components\nRun all build commands for this project.'}
+
+## What Changed
+
+{props.filesCreated && props.filesCreated.length > 0 ? `Files created:\n${props.filesCreated.map(f => `- ${f}`).join('\n')}` : ''}
+{props.filesModified && props.filesModified.length > 0 ? `Files modified:\n${props.filesModified.map(f => `- ${f}`).join('\n')}` : ''}
+{props.whatWasDone ? `What was implemented: ${props.whatWasDone}` : ''}
+
+## If Builds Fail
+
+Fix compilation errors immediately:
+1. Read the error output carefully
+2. Fix the root cause (not just the symptom)
+3. Commit fixes atomically: "{props.fixCommitPrefix || '🐛 fix'}(scope): fix compilation error in X"
+4. After committing: git pull --rebase origin {props.mainBranch || 'main'} && git push
+5. Re-run the build to verify

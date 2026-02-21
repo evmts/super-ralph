@@ -1,0 +1,31 @@
+RESEARCH PHASE — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Description: {props.ticketDescription}
+Category: {props.ticketCategory}
+
+Your job is to gather all reference materials needed to implement this ticket.
+
+## Reference Paths
+
+{props.referencePaths && props.referencePaths.length > 0 ? `Read these reference paths:\n${props.referencePaths.map(p => `- ${p}`).join('\n')}` : ''}
+
+## Steps
+
+1. **Read the specs** — Review all relevant specification documents
+2. **Read reference materials** — Browse reference documentation for patterns and examples
+3. **Read existing implementation** — Read any files listed in the ticket's relevantFiles
+4. **Write context file** — Write {props.contextFilePath} with all paths and summaries
+
+{props.referenceFiles && props.referenceFiles.length > 0 ? `\nHinted reference files:\n${props.referenceFiles.map(f => `- ${f}`).join('\n')}` : ''}
+
+{props.relevantFiles && props.relevantFiles.length > 0 ? `\nRelevant codebase files:\n${props.relevantFiles.map(f => `- ${f}`).join('\n')}` : ''}
+
+## Commit
+
+After writing the context file:
+```
+git add {props.contextFilePath}
+git commit -m "📝 docs({props.ticketCategory}): gather research for {props.ticketId}"
+git pull --rebase origin main && git push
+```

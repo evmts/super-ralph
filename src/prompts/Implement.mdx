@@ -1,0 +1,67 @@
+IMPLEMENTATION PHASE — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Category: {props.ticketCategory}
+
+## Context
+
+Read the plan file: {props.planFilePath}
+Read the context file: {props.contextFilePath}
+
+Implementation steps from plan:
+{props.implementationSteps ? props.implementationSteps.map((s, i) => `${i + 1}. ${s}`).join('\n') : 'See plan file'}
+
+{props.previousImplementation ? `\nPrevious implementation attempt:\nWhat was done: ${props.previousImplementation.whatWasDone}\nNext steps: ${props.previousImplementation.nextSteps ?? 'None specified'}` : ''}
+
+{props.reviewFeedback ? `\nReview feedback to address:\n${props.reviewFeedback}` : ''}
+
+{props.failingTests ? `\nFIX THESE FAILING TESTS FIRST:\n${props.failingTests}` : ''}
+
+## TDD IS MANDATORY — Follow This Order Exactly
+
+### Step 1: Write Failing Tests FIRST
+
+{props.testWritingGuidance && props.testWritingGuidance.length > 0
+  ? props.testWritingGuidance.map(g => `${g}`).join('\n\n')
+  : '- Write tests for happy paths AND error paths\n- Run test command to confirm tests FAIL (red phase)'}
+
+### Step 2: Write Minimal Implementation (Green Phase)
+
+- Write the SMALLEST amount of code to make failing tests pass
+{props.implementationGuidance && props.implementationGuidance.length > 0
+  ? props.implementationGuidance.map(g => `- ${g}`).join('\n')
+  : '- Follow project architectural patterns'}
+
+### Step 3: Refactor (Refactor Phase)
+
+- Clean up while keeping tests green
+- Extract shared logic
+- Improve naming
+{props.formatterCommands && props.formatterCommands.length > 0
+  ? `- Run formatters: ${props.formatterCommands.join(', ')}`
+  : '- Run formatters'}
+
+### Step 4: Verify
+
+{props.verifyCommands && props.verifyCommands.length > 0
+  ? props.verifyCommands.map(c => `- Run \`${c}\``).join('\n')
+  : '- Run all test suites to verify'}
+
+## Architecture Rules
+
+{props.architectureRules && props.architectureRules.length > 0
+  ? props.architectureRules.map(r => `- ${r}`).join('\n')
+  : '- Follow the architectural patterns defined in the specs'}
+
+## GIT COMMIT — MANDATORY (DO NOT SKIP)
+
+You MUST commit and push your changes before finishing. Uncommitted work is lost work.
+
+1. `git add` the relevant files (never add generated artifacts or binaries)
+2. `git commit -m "{props.commitPrefix || 'EMOJI'} type(scope): description"` — atomic commits, one logical change per commit. Commit tests and implementation together (TDD pair).
+3. `git pull --rebase origin {props.mainBranch || 'main'}`
+4. `git push`
+
+{props.emojiPrefixes ? `Emoji prefixes: ${props.emojiPrefixes}` : 'Use conventional commit prefixes'}
+
+**If you do not commit and push, your work does not count. This is non-negotiable.**

@@ -1,0 +1,28 @@
+CODE QUALITY REVIEW — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Category: {props.ticketCategory}
+
+You are reviewing this ticket's implementation for **code quality only**.
+Spec compliance is reviewed separately — focus here on quality, correctness patterns, and maintainability.
+
+## Files to Review
+
+{props.filesCreated && props.filesCreated.length > 0 ? `Created:\n${props.filesCreated.map(f => `- ${f}`).join('\n')}` : ''}
+{props.filesModified && props.filesModified.length > 0 ? `Modified:\n${props.filesModified.map(f => `- ${f}`).join('\n')}` : ''}
+
+## Review Checklist
+
+READ every file modified/created. Check:
+
+{props.qualityChecks && props.qualityChecks.length > 0
+  ? props.qualityChecks.map((check, i) => `### ${i + 1}. ${check.name}\n${check.items.map(item => `- ${item}`).join('\n')}`).join('\n\n')
+  : '### Code quality\n- Check error handling\n- Check security\n- Check code style\n- Check test coverage\n- Check performance\n- Check architecture'}
+
+Severity levels:
+- "critical" — Security issue, data corruption risk, or missing error handling
+- "major" — Missing tests, architectural problems, or significant quality issues
+- "minor" — Style issues, minor refactoring opportunities
+- "none" — Code is production-quality
+
+Use severity "none" only if there are absolutely no quality issues.

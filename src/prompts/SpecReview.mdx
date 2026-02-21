@@ -1,0 +1,43 @@
+SPEC COMPLIANCE REVIEW — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Category: {props.ticketCategory}
+
+You are reviewing this ticket's implementation for **spec compliance only**.
+You are NOT reviewing code quality — that's a separate review.
+
+## Files to Review
+
+{props.filesCreated && props.filesCreated.length > 0 ? `Created:\n${props.filesCreated.map(f => `- ${f}`).join('\n')}` : ''}
+{props.filesModified && props.filesModified.length > 0 ? `Modified:\n${props.filesModified.map(f => `- ${f}`).join('\n')}` : ''}
+
+## Test Results
+
+{props.testResults && props.testResults.length > 0
+  ? props.testResults.map(r => `- ${r.name}: ${r.status}`).join('\n')
+  : 'No test results provided'}
+{props.failingSummary ? `Failures: ${props.failingSummary}` : ''}
+
+## Review Checklist
+
+READ every file modified/created. For each, verify:
+
+{props.specChecks && props.specChecks.length > 0
+  ? props.specChecks.map((check, i) => `### ${i + 1}. ${check.name}\n${check.items.map(item => `- ${item}`).join('\n')}`).join('\n\n')
+  : '### Spec compliance\n- Verify implementation matches all specs'}
+
+### TDD Compliance
+- Tests were written BEFORE implementation (reject if tests came after)
+- Unit tests exist for new code
+- Integration tests exist for new user-facing features
+- Test quality: edge cases, error paths, not just happy path
+
+Flag ALL spec compliance issues. Be thorough.
+
+Severity levels:
+- "critical" — Spec violation that breaks core architecture or project identity
+- "major" — Missing spec requirement or architectural deviation
+- "minor" — Non-critical deviation (naming mismatch, missing docs)
+- "none" — Perfect spec compliance
+
+Use severity "none" only if there are absolutely no spec compliance issues.

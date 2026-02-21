@@ -1,0 +1,22 @@
+TESTING PHASE — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Category: {props.ticketCategory}
+
+Run ALL of the following test categories and report results:
+
+{props.testSuites && props.testSuites.length > 0
+  ? props.testSuites.map((suite, i) => `## ${i + 1}. ${suite.name}\nRun: \`${suite.command}\`\n${suite.description}\n${suite.skipCondition ? `If ${suite.skipCondition}, note "${suite.skipNote || 'N/A'}".` : ''}`).join('\n\n')
+  : '## Run all test suites\nExecute all relevant test commands for this project.'}
+
+## TDD Verification
+- Check that test files exist for new code
+- Check that integration tests exist for new user-facing features
+- If tests were written AFTER implementation (not TDD), flag as an issue
+
+If any tests fail and you need to fix code to make them pass, commit each fix atomically:
+- git add the specific files, then commit
+- Format: "{props.fixCommitPrefix || '🐛 fix'}(SCOPE): what was fixed"
+- After committing: git pull --rebase origin {props.mainBranch || 'main'} && git push
+
+Report each category: passed or failed with details.

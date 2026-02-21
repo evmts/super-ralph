@@ -1,0 +1,52 @@
+CODEBASE REVIEW — {props.categoryId}: {props.categoryName}
+
+You are reviewing the existing implementation of **{props.categoryName}** ({props.categoryId}).
+This is a thorough audit of past work — NOT new feature development.
+
+## Review Dimensions
+
+### 1. Spec Compliance
+- Read the relevant specs in {props.specsPath}
+- Read {props.masterDecisionsFile} for master decisions
+- Compare our implementation against the spec requirements
+- Flag ANY deviations, missing features, or incorrect behavior
+- API routes must match {props.apiDesignSpec}
+- Database schema must match {props.engineeringSpec}
+
+### 2. Architecture Alignment
+{props.architecturePatterns && props.architecturePatterns.length > 0
+  ? props.architecturePatterns.map(p => `- ${p}`).join('\n')
+  : '- Check that architectural patterns are followed'}
+- Check that dependency flow is correct
+
+### 3. Test Coverage
+{props.testPatterns && props.testPatterns.length > 0
+  ? props.testPatterns.map(p => `- ${p}`).join('\n')
+  : '- Check that test coverage exists for new code'}
+- Check if edge cases are covered (empty inputs, auth failures, conflicts)
+- Flag any missing test coverage
+
+### 4. Code Quality
+- Check error handling: proper error types, correct status codes
+- Check code style: formatters clean, language conventions followed
+- Check for TODO/FIXME comments that should be addressed
+- Check for dead code, unused imports
+- Check for security issues (injection attacks, missing auth)
+
+### 5. Project Identity Compliance
+{props.identityChecks && props.identityChecks.length > 0
+  ? props.identityChecks.map(c => `- ${c}`).join('\n')
+  : '- Verify project-specific identity requirements are met'}
+
+## Where to Look
+
+{props.relevantDirs ? `\nHint directories:\n${props.relevantDirs.map(d => `- ${d}`).join('\n')}` : 'Browse the codebase for files related to this category.'}
+
+## Generate Review Tickets
+
+For each substantive issue found, generate a review ticket in the `suggestedTickets` array.
+Each ticket should be actionable and specific — not "improve error handling" but "add proper error type in CreateRepo handler which currently returns raw 500".
+
+GIT RULES — CRITICAL:
+- Do NOT make any commits during this review
+- This is a read-only analysis phase
