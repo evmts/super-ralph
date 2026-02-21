@@ -23,6 +23,6 @@ This is the equivalent of a full CI build check.
 Fix compilation errors immediately:
 1. Read the error output carefully
 2. Fix the root cause (not just the symptom)
-3. Commit fixes atomically: "{props.fixCommitPrefix || '🐛 fix'}(scope): fix compilation error in X"
-4. After committing: git pull --rebase origin {props.mainBranch || 'main'} && git push
+3. Commit fixes atomically: `jj describe -m "{props.fixCommitPrefix || '🐛 fix'}(scope): fix compilation error in X"` then `jj new`
+4. After fixing: `jj bookmark set ticket/{props.ticketId} -r @` && `jj git push --bookmark ticket/{props.ticketId}`
 5. Re-run the build to verify

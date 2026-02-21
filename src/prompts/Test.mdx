@@ -15,8 +15,8 @@ Run ALL of the following test categories and report results:
 - If tests were written AFTER implementation (not TDD), flag as an issue
 
 If any tests fail and you need to fix code to make them pass, commit each fix atomically:
-- git add the specific files, then commit
-- Format: "{props.fixCommitPrefix || '🐛 fix'}(SCOPE): what was fixed"
-- After committing: git pull --rebase origin {props.mainBranch || 'main'} && git push
+- `jj describe -m "{props.fixCommitPrefix || '🐛 fix'}(SCOPE): what was fixed"`
+- `jj new`
+- After fixing: `jj bookmark set ticket/{props.ticketId} -r @` && `jj git push --bookmark ticket/{props.ticketId}`
 
 Report each category: passed or failed with details.

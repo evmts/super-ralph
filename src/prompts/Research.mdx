@@ -25,7 +25,8 @@ Your job is to gather all reference materials needed to implement this ticket.
 
 After writing the context file:
 ```
-git add {props.contextFilePath}
-git commit -m "📝 docs({props.ticketCategory}): gather research for {props.ticketId}"
-git pull --rebase origin main && git push
+jj describe -m "📝 docs({props.ticketCategory}): gather research for {props.ticketId}"
+jj new
+jj bookmark set ticket/{props.ticketId} -r @
+jj git push --bookmark ticket/{props.ticketId}
 ```

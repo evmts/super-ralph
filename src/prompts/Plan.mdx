@@ -44,7 +44,8 @@ The plan file MUST follow TDD ordering:
 
 After writing the plan file:
 ```
-git add {props.planFilePath}
-git commit -m "{props.commitPrefix || '📝'} docs({props.ticketCategory}): create plan for {props.ticketId}"
-git pull --rebase origin {props.mainBranch || 'main'} && git push
+jj describe -m "{props.commitPrefix || '📝'} docs({props.ticketCategory}): create plan for {props.ticketId}"
+jj new
+jj bookmark set ticket/{props.ticketId} -r @
+jj git push --bookmark ticket/{props.ticketId}
 ```
