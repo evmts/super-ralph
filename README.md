@@ -20,55 +20,68 @@ import { KimiAgent, GeminiAgent, ClaudeCodeAgent, CodexAgent } from "smithers-or
 // 1. Create Smithers with built-in schemas
 const { smithers, outputs } = createSmithers(ralphOutputSchemas, { dbPath: "./workflow.db" });
 
-// 2. Define your project categories
-const categories = [
-  { id: "auth", name: "Authentication" },
-  { id: "api", name: "API Server" },
+// 2. Define your work focuses (areas of work to organize tickets)
+const focuses = [
+  { id: "auth", name: "Authentication" },  // Work focus: authentication system
+  { id: "api", name: "API Server" },       // Work focus: API endpoints
 ];
 
 // 3. Create workflow
 export default smithers((ctx) => {
   const superRalphCtx = useSuperRalph(ctx, {
-    categories,
-    outputs,
-    target: { id: "my-project", name: "My Project" },
+    focuses,                                          // Work areas for organizing tickets
+    outputs,                                           // Smithers output schemas
+    target: {                                          // Project configuration
+      id: "my-project",                                // Project ID
+      name: "My Project",                              // Display name
+      specsPath: "docs/specs/",                        // Where specs live
+      referenceFiles: ["docs/reference/"],             // Reference documentation
+      buildCmds: { go: "go build ./..." },             // Build commands by language
+      testCmds: { go: "go test ./..." },               // Test commands by type
+      codeStyle: "Go: snake_case",                     // Code style guidelines
+      reviewChecklist: ["Spec compliance"],            // Code review checklist
+    },
   });
 
   return (
     <SuperRalph
-      superRalphCtx={superRalphCtx}
-      maxConcurrency={12}
-      taskRetries={3}
-      updateProgress={
+      superRalphCtx={superRalphCtx}  // State from useSuperRalph hook
+      maxConcurrency={12}             // Max parallel tasks to run
+      taskRetries={3}                 // Retry count for failed tasks
+      updateProgress={                // How to update progress file
         <SuperRalph.UpdateProgress
-          agent={new KimiAgent({ model: "kimi-code/kimi-for-coding", cwd: process.cwd(), yolo: true })}
-          projectName="My Project"
-          progressFile="PROGRESS.md"
+          agent={new KimiAgent({ model: "kimi-code/kimi-for-coding", cwd: process.cwd(), yolo: true })}  // Primary agent
+          projectName="My Project"      // Project name for progress report
+          progressFile="PROGRESS.md"    // File path to write progress to
         />
       }
-      discover={
+      discover={                        // How to discover new tickets
         <SuperRalph.Discover
-          agent={new GeminiAgent({ model: "gemini-2.5-pro", cwd: process.cwd(), yolo: true })}
-          specsPath="docs/specs/"
-          referenceFiles={["docs/reference/"]}
+          agent={new GeminiAgent({ model: "gemini-2.5-pro", cwd: process.cwd(), yolo: true })}  // Primary agent
+          specsPath="docs/specs/"               // Where to find specs to review
+          referenceFiles={["docs/reference/"]}  // Reference docs for patterns
         />
       }
-      integrationTest={
+      integrationTest={                 // How to run integration tests
         <SuperRalph.IntegrationTest
-          agent={new ClaudeCodeAgent({ model: "claude-sonnet-4-6", cwd: process.cwd() })}
-          categories={categories}
-          categoryTestSuites={{
-            auth: { suites: ["Auth tests"], setupHints: ["go test ./internal/auth/..."], testDirs: ["internal/auth/"] },
+          agent={new ClaudeCodeAgent({ model: "claude-sonnet-4-6", cwd: process.cwd() })}  // Primary agent
+          focuses={focuses}                      // Run tests for each focus area
+          categoryTestSuites={{                   // Test suites per focus
+            auth: {
+              suites: ["Auth tests"],            // Test suite names
+              setupHints: ["go test ./internal/auth/..."],  // Commands to run
+              testDirs: ["internal/auth/"]       // Directories to check
+            },
           }}
-          findingsFile="docs/test-suite-findings.md"
+          findingsFile="docs/test-suite-findings.md"  // Where to write test results
         />
       }
-      categoryReview={
+      categoryReview={               // How to review each focus area
         <SuperRalph.CategoryReview
-          agent={new CodexAgent({ model: "gpt-5.3-codex", cwd: process.cwd(), yolo: true })}
-          categoryDirs={{
-            auth: ["internal/auth/"],
-            api: ["internal/routes/", "internal/services/"],
+          agent={new CodexAgent({ model: "gpt-5.3-codex", cwd: process.cwd(), yolo: true })}  // Primary agent
+          categoryDirs={{              // Directories to review per focus
+            auth: ["internal/auth/"],  // Auth focus reviews these dirs
+            api: ["internal/routes/", "internal/services/"],  // API focus reviews these
           }}
         />
       }
@@ -259,11 +272,11 @@ const research = selectResearch(ctx, ticketId);
 
 ### IntegrationTest
 
-- `agent` - Primary agent
-- `fallbackAgent` - Optional fallback
-- `categories` - Array of `{ id, name }`
-- `categoryTestSuites` - Map of category ID to `{ suites, setupHints, testDirs }`
-- `findingsFile` - Path to findings file
+- `agent` - Primary agent for running tests
+- `fallbackAgent` - Optional fallback agent
+- `focuses` - Array of `{ id, name }` work focus areas
+- `categoryTestSuites` - Map of focus ID to `{ suites, setupHints, testDirs }`
+- `findingsFile` - Path to write test findings (e.g., `docs/test-suite-findings.md`)
 
 ### CategoryReview
 

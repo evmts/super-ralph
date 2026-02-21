@@ -39,7 +39,7 @@ type DiscoverProps = {
 type IntegrationTestProps = {
   agent: any;
   fallbackAgent?: any;
-  categories: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  focuses: ReadonlyArray<{ readonly id: string; readonly name: string }>;
   categoryTestSuites: Record<string, { suites: string[]; setupHints: string[]; testDirs: string[] }>;
   findingsFile: string;
 };
@@ -511,7 +511,7 @@ function TicketPipeline({
 }
 
 type CodebaseReviewOrchestratorProps = {
-  categories: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  focuses: ReadonlyArray<{ readonly id: string; readonly name: string }>;
   maxConcurrency: number;
   taskRetries: number;
   categoryReview: ReactElement<CategoryReviewProps>;
@@ -519,7 +519,7 @@ type CodebaseReviewOrchestratorProps = {
 };
 
 function CodebaseReviewOrchestrator({
-  categories,
+  focuses,
   maxConcurrency,
   taskRetries,
   categoryReview,
@@ -572,7 +572,7 @@ export function SuperRalph({
   reviewFix,
   report,
 }: SuperRalphProps) {
-  const { ctx, completedTicketIds, unfinishedTickets, reviewFindings, progressSummary, categories, outputs } = superRalphCtx;
+  const { ctx, completedTicketIds, unfinishedTickets, reviewFindings, progressSummary, focuses, outputs } = superRalphCtx;
 
   return (
     <Ralph until={false} maxIterations={Infinity} onMaxReached="return-last">
@@ -596,7 +596,7 @@ export function SuperRalph({
 
         {!skipPhases.has("CODEBASE_REVIEW") && (
           <CodebaseReviewOrchestrator
-            categories={categories}
+            categories={focuses}
             maxConcurrency={maxConcurrency}
             taskRetries={taskRetries}
             categoryReview={categoryReview}
@@ -616,7 +616,7 @@ export function SuperRalph({
               projectName={updateProgress.props.projectName}
               specsPath={discover.props.specsPath}
               referenceFiles={discover.props.referenceFiles}
-              categories={categories}
+              categories={focuses}
               completedTicketIds={completedTicketIds}
               previousProgress={progressSummary}
               reviewFindings={reviewFindings}

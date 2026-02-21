@@ -19,11 +19,11 @@ export interface Ticket {
 const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
 const sortByPriority = (a: any, b: any) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
 
-export function selectReviewTickets(ctx: SmithersCtx<any>, categories: ReadonlyArray<{ readonly id: string }>, outputs: any): { tickets: any[]; findings: string | null } {
+export function selectReviewTickets(ctx: SmithersCtx<any>, focuses: ReadonlyArray<{ readonly id: string }>, outputs: any): { tickets: any[]; findings: string | null } {
   const tickets: Ticket[] = [];
   const summaryParts: string[] = [];
 
-  for (const { id } of categories) {
+  for (const { id } of focuses) {
     const review = ctx.outputMaybe(outputs.category_review, { nodeId: `codebase-review:${id}` }) as any;
     if (review?.suggestedTickets) tickets.push(...review.suggestedTickets);
     if (review && review.overallSeverity !== "none") {
@@ -56,8 +56,8 @@ export function selectProgressSummary(ctx: SmithersCtx<any>, outputs: any): stri
   return progress?.summary ?? null;
 }
 
-export function selectAllTickets(ctx: SmithersCtx<any>, categories: ReadonlyArray<{ readonly id: string }>, outputs: any): { all: any[]; completed: string[]; unfinished: any[] } {
-  const { tickets: reviewTickets } = selectReviewTickets(ctx, categories, outputs);
+export function selectAllTickets(ctx: SmithersCtx<any>, focuses: ReadonlyArray<{ readonly id: string }>, outputs: any): { all: any[]; completed: string[]; unfinished: any[] } {
+  const { tickets: reviewTickets } = selectReviewTickets(ctx, focuses, outputs);
   const featureTickets = selectDiscoverTickets(ctx, outputs);
 
   // Merge and deduplicate tickets (review tickets take priority)
