@@ -30,6 +30,17 @@ export default smithers((ctx) => {
       { id: "api", name: "API Server" },
     ],
     outputs,
+    target: {
+      id: "my-project",
+      name: "My Project",
+      buildCmds: { go: "go build ./..." },
+      testCmds: { go: "go test ./..." },
+      fmtCmds: { go: "gofmt -w ." },
+      specsPath: "docs/specs/",
+      codeStyle: "Go: snake_case",
+      reviewChecklist: ["Spec compliance"],
+      referenceFiles: ["docs/reference/"],
+    },
   });
 
   return (
@@ -37,19 +48,8 @@ export default smithers((ctx) => {
       superRalphCtx={superRalphCtx}
       maxConcurrency={12}
       taskRetries={3}
-      target={{
-        id: "my-project",
-        name: "My Project",
-        buildCmds: { go: "go build ./..." },
-        testCmds: { go: "go test ./..." },
-        fmtCmds: { go: "gofmt -w ." },
-        specsPath: "docs/specs/",
-        codeStyle: "Go: snake_case",
-        reviewChecklist: ["Spec compliance"],
-        referenceFiles: ["docs/reference/"],
-      }}
-    >
-      <SuperRalph.UpdateProgress
+      updateProgress={
+        <SuperRalph.UpdateProgress
         agent={new KimiAgent({
           model: "kimi-code/kimi-for-coding",
           systemPrompt: "Summarize progress.",
@@ -67,9 +67,10 @@ export default smithers((ctx) => {
         })}
         projectName="My Project"
         progressFile="PROGRESS.md"
-      />
-
-      <SuperRalph.Discover
+        />
+      }
+      discover={
+        <SuperRalph.Discover
         agent={new GeminiAgent({
           model: "gemini-2.5-pro",
           systemPrompt: "Discover new work.",
@@ -84,9 +85,12 @@ export default smithers((ctx) => {
           dangerouslySkipPermissions: true,
           timeoutMs: 15 * 60 * 1000,
         })}
-      />
-
-      <SuperRalph.IntegrationTest
+        specsPath="docs/specs/"
+        referenceFiles={["docs/reference/"]}
+        />
+      }
+      integrationTest={
+        <SuperRalph.IntegrationTest
         agent={new ClaudeCodeAgent({
           model: "claude-sonnet-4-6",
           systemPrompt: "Run integration tests.",
@@ -110,16 +114,19 @@ export default smithers((ctx) => {
           },
         }}
         findingsFile="docs/test-suite-findings.md"
-      />
-
-      <SuperRalph.CodebaseReview>
-        <CodebaseReview />
-      </SuperRalph.CodebaseReview>
-
-      <SuperRalph.TicketPipeline>
-        <TicketPipeline />
-      </SuperRalph.TicketPipeline>
-    </SuperRalph>
+        />
+      }
+      codebaseReview={
+        <SuperRalph.CodebaseReview target={superRalphCtx.target}>
+          <CodebaseReview />
+        </SuperRalph.CodebaseReview>
+      }
+      ticketPipeline={
+        <SuperRalph.TicketPipeline target={superRalphCtx.target}>
+          <TicketPipeline />
+        </SuperRalph.TicketPipeline>
+      }
+    />
   );
 });
 ```
