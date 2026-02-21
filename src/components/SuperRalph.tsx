@@ -21,8 +21,8 @@ export type SuperRalphAgents = {
 };
 
 export type SuperRalphProps = {
-  ctx?: SmithersCtx<any>;
-  superRalphCtx?: SuperRalphContext;
+  superRalphCtx: SuperRalphContext;
+  ctx: SmithersCtx<any>;
   prompts: SuperRalphPrompts;
   agents: SuperRalphAgents;
   maxConcurrency: number;
@@ -37,8 +37,8 @@ export type SuperRalphProps = {
 };
 
 export function SuperRalph({
-  ctx,
   superRalphCtx,
+  ctx,
   prompts,
   agents,
   maxConcurrency,
@@ -51,14 +51,7 @@ export function SuperRalph({
   IntegrationTest,
   skipPhases = new Set(),
 }: SuperRalphProps) {
-  // Controlled component: use provided superRalphCtx, or compute it from ctx
-  const workflowState = superRalphCtx ?? (ctx ? useSuperRalph(ctx, { categories, outputs }) : null);
-
-  if (!workflowState) {
-    throw new Error("SuperRalph requires either ctx or superRalphCtx prop");
-  }
-
-  const { completedTicketIds, unfinishedTickets, reviewFindings } = workflowState;
+  const { completedTicketIds, unfinishedTickets, reviewFindings } = superRalphCtx;
   const { UpdateProgress, Discover } = prompts;
 
   return (
@@ -89,7 +82,7 @@ export function SuperRalph({
             <Discover
               categories={categories}
               completedTicketIds={completedTicketIds}
-              previousProgress={workflowState.progressSummary}
+              previousProgress={superRalphCtx.progressSummary}
               reviewFindings={reviewFindings}
             />
           </Task>
@@ -99,7 +92,7 @@ export function SuperRalph({
 
         {unfinishedTickets.map((ticket: any) => (
           <Worktree key={ticket.id} id={`wt-${ticket.id}`} path={`/tmp/workflow-wt-${ticket.id}`}>
-            <TicketPipeline target={target} ticket={ticket} ctx={ctx!} />
+            <TicketPipeline target={target} ticket={ticket} ctx={ctx} />
           </Worktree>
         ))}
       </Parallel>
