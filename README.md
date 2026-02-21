@@ -19,13 +19,35 @@ bun add @evmts/super-ralph smithers-orchestrator
 
 ### Uncontrolled (pass ctx directly)
 
+First, create your Smithers setup and define your output schemas:
+
 ```typescript
+// smithers.ts - Your Smithers setup
+import { createSmithers } from "smithers-orchestrator";
+import { z } from "zod";
+
+export const outputSchemas = {
+  progress: z.object({ summary: z.string() }),
+  discover: z.object({ tickets: z.array(z.any()) }),
+  category_review: z.object({ suggestedTickets: z.array(z.any()) }),
+  // ... your other output schemas
+};
+
+export const { Workflow, Task, smithers, outputs } = createSmithers(outputSchemas, {
+  dbPath: "./workflow.db",
+});
+```
+
+Then use SuperRalph in your workflow:
+
+```typescript
+// workflow.tsx
 import { SuperRalph } from "@evmts/super-ralph";
-import { Workflow, smithers, outputs } from "./smithers"; // Your Smithers setup
+import { Workflow, smithers, outputs } from "./smithers";
 import { KimiAgent, GeminiAgent, ClaudeCodeAgent } from "smithers-orchestrator";
-import UpdateProgressPrompt from "./prompts/UpdateProgress.mdx"; // Your MDX prompts
+import UpdateProgressPrompt from "./prompts/UpdateProgress.mdx";
 import DiscoverPrompt from "./prompts/Discover.mdx";
-import { CodebaseReview } from "./components/CodebaseReview"; // Your components
+import { CodebaseReview } from "./components/CodebaseReview";
 import { TicketPipeline } from "./components/TicketPipeline";
 import { IntegrationTest } from "./components/IntegrationTest";
 
@@ -111,6 +133,7 @@ export default smithers((ctx) => {
 ### Controlled (use hook for custom logic)
 
 ```typescript
+// workflow.tsx
 import { SuperRalph, useSuperRalph } from "@evmts/super-ralph";
 import { Workflow, smithers, outputs } from "./smithers";
 // ... same imports as above
