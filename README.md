@@ -41,17 +41,6 @@ export default smithers((ctx) => {
         prompts={{
           UpdateProgress: UpdateProgressPrompt,
           Discover: DiscoverPrompt,
-          Research: null as any,
-          Plan: null as any,
-          Implement: null as any,
-          Test: null as any,
-          BuildVerify: null as any,
-          SpecReview: null as any,
-          ReviewFix: null as any,
-          Report: null as any,
-          CategoryReview: null as any,
-          CodeReview: null as any,
-          IntegrationTest: null as any,
         }}
         agents={{
           updateProgress: {
@@ -87,34 +76,6 @@ export default smithers((ctx) => {
               timeoutMs: 15 * 60 * 1000,
             }),
           },
-          integrationTest: {
-            agent: new ClaudeCodeAgent({
-              model: "claude-sonnet-4-6",
-              systemPrompt: "Run integration tests. Execute test commands, document results.",
-              cwd: REPO_ROOT,
-              dangerouslySkipPermissions: true,
-              timeoutMs: 20 * 60 * 1000,
-            }),
-            fallback: new KimiAgent({
-              model: "kimi-code/kimi-for-coding",
-              systemPrompt: "Run integration tests. Execute test commands, document results.",
-              cwd: REPO_ROOT,
-              yolo: true,
-              thinking: true,
-              timeoutMs: 20 * 60 * 1000,
-            }),
-          },
-          // Other agents handled by child components (TicketPipeline, etc.)
-          research: null as any,
-          plan: null as any,
-          implement: null as any,
-          test: null as any,
-          buildVerify: null as any,
-          specReview: null as any,
-          reviewFix: null as any,
-          report: null as any,
-          categoryReview: null as any,
-          codeReview: null as any,
         }}
         config={{
           name: "my-workflow",
@@ -191,32 +152,30 @@ Use this when you need to:
 ## What You Provide
 
 ### Prompts (MDX files)
-Your domain-specific instructions for each workflow step. These are React components (compiled from MDX) that receive props and render the prompt text.
+Your domain-specific instructions for workflow steps that SuperRalph orchestrates directly. These are React components (compiled from MDX) that receive props and render the prompt text.
 
-**Required prompts:**
+**Required:**
 - `UpdateProgress` - How to summarize progress across completed tickets
+  - Props: `{ completedTickets: string[] }`
 - `Discover` - How to identify new work from specs and code
+  - Props: `{ categories: any[]; completedTicketIds: string[]; previousProgress: string | null; reviewFindings: string | null }`
 
-**Optional prompts** (handled by your child components like TicketPipeline):
-- `Research`, `Plan`, `Implement`, `Test`, `BuildVerify`, `SpecReview`, `ReviewFix`, `Report`
-- `CategoryReview`, `CodeReview`, `IntegrationTest`
+All other prompts (Research, Plan, Implement, Test, BuildVerify, SpecReview, ReviewFix, Report, CategoryReview, CodeReview, IntegrationTest) are handled by your child components (`CodebaseReview`, `TicketPipeline`, `IntegrationTest`) which you pass in config.
 
 ### Agents
-Your choice of AI models and configurations for each step:
+Your choice of AI models and configurations for workflow steps that SuperRalph orchestrates directly.
 
-**Required agents:**
-- `updateProgress` - { agent, fallback } for progress summarization
-- `discover` - { agent, fallback } for ticket discovery
-- `integrationTest` - { agent, fallback } for running tests
+**Required:**
+- `updateProgress` - `{ agent: Agent, fallback: Agent }` for progress summarization
+- `discover` - `{ agent: Agent, fallback: Agent }` for ticket discovery
 
-**Optional agents** (configured in your child components):
-- `research`, `plan`, `implement`, `test`, `buildVerify`, `specReview`, `reviewFix`, `report`
-- `categoryReview`, `codeReview`
+All other agents (for Research, Plan, Implement, Test, etc.) are configured in your child components (`CodebaseReview`, `TicketPipeline`, `IntegrationTest`).
 
-Each agent config includes:
-- Model selection (Claude, Codex, Gemini, Kimi, etc.)
-- System prompts (task-specific instructions)
-- Timeouts, permissions (yolo/dangerouslySkipPermissions)
+Each agent is a Smithers agent instance (ClaudeCodeAgent, KimiAgent, GeminiAgent, CodexAgent, etc.) with:
+- Model selection (e.g., "claude-sonnet-4-6", "gpt-5.3-codex")
+- System prompt (task-specific instructions)
+- Timeout in milliseconds
+- Permissions (yolo/dangerouslySkipPermissions)
 - Working directory (cwd)
 
 ### Config
