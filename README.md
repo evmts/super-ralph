@@ -9,7 +9,7 @@ Supports subscriptions.
 ## Installation
 
 ```bash
-bun add @smithers-orchestrator/super-ralph smithers-orchestrator
+bun add super-ralph smithers-orchestrator
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ bun add @smithers-orchestrator/super-ralph smithers-orchestrator
 import {
   SuperRalph,
   ralphOutputSchemas,
-} from "@smithers-orchestrator/super-ralph";
+} from "super-ralph";
 import {
   createSmithers,
   ClaudeCodeAgent,
