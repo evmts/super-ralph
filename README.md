@@ -38,22 +38,22 @@ export default smithers((ctx) => (
       { id: "auth", name: "Authentication" },
       { id: "api", name: "API Server" },
     ]}
-    target={{
-      id: "my-project",
-      name: "My Project",
-      specsPath: "docs/specs/",
-      referenceFiles: ["docs/reference/"],
-      buildCmds: { go: "go build ./...", rust: "cargo build" },
-      testCmds: { go: "go test ./...", rust: "cargo test" },
-      codeStyle: "Go: snake_case, Rust: snake_case",
-      reviewChecklist: ["Spec compliance", "Test coverage", "Security"],
-    }}
+    projectId="my-project"
+    projectName="My Project"
+    specsPath="docs/specs/"
+    referenceFiles={["docs/reference/"]}
+    buildCmds={{ go: "go build ./...", rust: "cargo build" }}
+    testCmds={{ go: "go test ./...", rust: "cargo test" }}
+    codeStyle="Go: snake_case, Rust: snake_case"
+    reviewChecklist={["Spec compliance", "Test coverage", "Security"]}
     maxConcurrency={12}
-    planningAgent={new CodexAgent({ model: "gpt-5.3-codex", cwd: process.cwd(), yolo: true })}
-    implementationAgent={new ClaudeCodeAgent({ model: "claude-sonnet-4-6", cwd: process.cwd() })}
-    testingAgent={new ClaudeCodeAgent({ model: "claude-sonnet-4-6", cwd: process.cwd() })}
-    reviewingAgent={new CodexAgent({ model: "gpt-5.3-codex", cwd: process.cwd(), yolo: true })}
-    reportingAgent={new GeminiAgent({ model: "gemini-2.5-pro", cwd: process.cwd(), yolo: true })}
+    agents={{
+      planning: new CodexAgent({ model: "gpt-5.3-codex", cwd: process.cwd(), yolo: true }),
+      implementation: new ClaudeCodeAgent({ model: "claude-sonnet-4-6", cwd: process.cwd() }),
+      testing: new ClaudeCodeAgent({ model: "claude-sonnet-4-6", cwd: process.cwd() }),
+      reviewing: new CodexAgent({ model: "gpt-5.3-codex", cwd: process.cwd(), yolo: true }),
+      reporting: new GeminiAgent({ model: "gemini-2.5-pro", cwd: process.cwd(), yolo: true }),
+    }}
   >
     <PRD />
     <EngineeringSpec />
