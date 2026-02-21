@@ -13,38 +13,37 @@ bun add @evmts/super-ralph smithers-orchestrator
 ## Usage
 
 ```tsx
-import { SuperRalph, useSuperRalph, ralphOutputSchemas } from "@evmts/super-ralph";
+import { SuperRalph, ralphOutputSchemas } from "@evmts/super-ralph";
 import { createSmithers } from "smithers-orchestrator";
 import { KimiAgent, GeminiAgent, ClaudeCodeAgent, CodexAgent } from "smithers-orchestrator";
+import PRD from "./specs/PRD.mdx";                    // Your product requirements
+import EngineeringSpec from "./specs/Engineering.mdx"; // Your engineering spec
+import DesignSpec from "./specs/Design.mdx";          // Your design spec
 
 // 1. Create Smithers with built-in schemas
 const { smithers, outputs } = createSmithers(ralphOutputSchemas, { dbPath: "./workflow.db" });
 
 // 2. Create workflow
-export default smithers((ctx) => {
-  const superRalphCtx = useSuperRalph(ctx, {
-    focuses: [                                         // Work areas for organizing tickets
+export default smithers((ctx) => (
+  <SuperRalph
+    ctx={ctx}                        // Smithers context
+    focuses={[                        // Work areas for organizing tickets
       { id: "auth", name: "Authentication" },
       { id: "api", name: "API Server" },
-    ],
-    outputs,                                           // Smithers output schemas
-    target: {                                          // Project configuration
-      id: "my-project",                                // Project ID
-      name: "My Project",                              // Display name
-      specsPath: "docs/specs/",                        // Where specs live
-      referenceFiles: ["docs/reference/"],             // Reference documentation
-      buildCmds: { go: "go build ./..." },             // Build commands by language
-      testCmds: { go: "go test ./..." },               // Test commands by type
-      codeStyle: "Go: snake_case",                     // Code style guidelines
-      reviewChecklist: ["Spec compliance"],            // Code review checklist
-    },
-  });
-
-  return (
-    <SuperRalph
-      superRalphCtx={superRalphCtx}  // State from useSuperRalph hook
-      maxConcurrency={12}             // Max parallel tasks to run
-      taskRetries={3}                 // Retry count for failed tasks
+    ]}
+    outputs={outputs}                 // Smithers output schemas
+    target={{                          // Project configuration
+      id: "my-project",                // Project ID
+      name: "My Project",              // Display name
+      specsPath: "docs/specs/",        // Where specs live
+      referenceFiles: ["docs/reference/"], // Reference documentation
+      buildCmds: { go: "go build ./..." }, // Build commands by language
+      testCmds: { go: "go test ./..." },   // Test commands by type
+      codeStyle: "Go: snake_case",         // Code style guidelines
+      reviewChecklist: ["Spec compliance"], // Code review checklist
+    }}
+    maxConcurrency={12}               // Max parallel tasks to run
+    taskRetries={3}                   // Retry count for failed tasks
       updateProgress={                // How to update progress file
         <SuperRalph.UpdateProgress
           agent={new KimiAgent({ model: "kimi-code/kimi-for-coding", cwd: process.cwd(), yolo: true })}  // Primary agent
@@ -177,9 +176,30 @@ export default smithers((ctx) => {
           reportDir="docs/reports"
         />
       }
-    />
-  );
-});
+    >
+      <PRD />
+      <EngineeringSpec />
+      <DesignSpec />
+    </SuperRalph>
+  )
+));
+```
+
+### Advanced: Custom Components
+
+You can replace any compound component with your own:
+
+```tsx
+// Replace built-in Discover with custom implementation
+discover={<MyCustomDiscover agent={...} />}
+
+// Or run additional logic in parallel with built-in
+discover={
+  <Parallel>
+    <SuperRalph.Discover agent={...} specsPath="..." referenceFiles={[...]} />
+    <MyAdditionalDiscovery agent={...} />
+  </Parallel>
+}
 ```
 
 ## What's Included

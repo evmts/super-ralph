@@ -1,7 +1,6 @@
 import { Ralph, Parallel, Sequence, Worktree, Task } from "smithers-orchestrator";
 import type { SmithersCtx } from "smithers-orchestrator";
-import { selectAllTickets, selectImplement, selectTestResults, selectSpecReview, selectCodeReviews } from "../selectors";
-import type { SuperRalphContext } from "../hooks/useSuperRalph";
+import { selectAllTickets, selectReviewTickets, selectProgressSummary, selectImplement, selectTestResults, selectSpecReview, selectCodeReviews } from "../selectors";
 import React, { type ReactElement, type ReactNode } from "react";
 import UpdateProgressPrompt from "../prompts/UpdateProgress.mdx";
 import DiscoverPrompt from "../prompts/Discover.mdx";
@@ -134,7 +133,10 @@ type ReportProps = {
 // ============================================================================
 
 export type SuperRalphProps = {
-  superRalphCtx: SuperRalphContext;
+  ctx: SmithersCtx<any>;
+  focuses: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  outputs: any;
+  target: any;
   maxConcurrency: number;
   taskRetries: number;
   skipPhases?: Set<string>;
@@ -151,6 +153,7 @@ export type SuperRalphProps = {
   codeReview: ReactElement<CodeReviewProps>;
   reviewFix: ReactElement<ReviewFixProps>;
   report: ReactElement<ReportProps>;
+  children?: ReactNode;
 };
 
 // ============================================================================
@@ -554,7 +557,10 @@ function CodebaseReviewOrchestrator({
 // ============================================================================
 
 export function SuperRalph({
-  superRalphCtx,
+  ctx,
+  focuses,
+  outputs,
+  target,
   maxConcurrency,
   taskRetries,
   skipPhases = new Set(),
@@ -571,8 +577,11 @@ export function SuperRalph({
   codeReview,
   reviewFix,
   report,
+  children,
 }: SuperRalphProps) {
-  const { ctx, completedTicketIds, unfinishedTickets, reviewFindings, progressSummary, focuses, outputs } = superRalphCtx;
+  const { findings: reviewFindings } = selectReviewTickets(ctx, focuses, outputs);
+  const { completed: completedTicketIds, unfinished: unfinishedTickets } = selectAllTickets(ctx, focuses, outputs);
+  const progressSummary = selectProgressSummary(ctx, outputs);
 
   return (
     <Ralph until={false} maxIterations={Infinity} onMaxReached="return-last">
