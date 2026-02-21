@@ -17,9 +17,9 @@ export interface Ticket {
 }
 
 const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-const sortByPriority = (a: Ticket, b: Ticket) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
+const sortByPriority = (a: any, b: any) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
 
-export function selectReviewTickets(ctx: SmithersCtx<any>, categories: Array<{ id: string }>, outputs: any): { tickets: Ticket[]; findings: string | null } {
+export function selectReviewTickets(ctx: SmithersCtx<any>, categories: ReadonlyArray<{ readonly id: string }>, outputs: any): { tickets: any[]; findings: string | null } {
   const tickets: Ticket[] = [];
   const summaryParts: string[] = [];
 
@@ -37,12 +37,12 @@ export function selectReviewTickets(ctx: SmithersCtx<any>, categories: Array<{ i
   };
 }
 
-export function selectDiscoverTickets(ctx: SmithersCtx<any>, outputs: any): Ticket[] {
+export function selectDiscoverTickets(ctx: SmithersCtx<any>, outputs: any): any[] {
   const discoverOutput = ctx.outputMaybe(outputs.discover, { nodeId: "discover" }) as any;
   return discoverOutput?.tickets ?? [];
 }
 
-export function selectCompletedTicketIds(ctx: SmithersCtx<any>, tickets: Ticket[], outputs: any): string[] {
+export function selectCompletedTicketIds(ctx: SmithersCtx<any>, tickets: any[], outputs: any): string[] {
   return tickets
     .filter((t) => {
       const report = ctx.outputMaybe(outputs.report, { nodeId: `${t.id}:report` }) as any;
@@ -56,13 +56,13 @@ export function selectProgressSummary(ctx: SmithersCtx<any>, outputs: any): stri
   return progress?.summary ?? null;
 }
 
-export function selectAllTickets(ctx: SmithersCtx<any>, categories: Array<{ id: string }>, outputs: any): { all: Ticket[]; completed: string[]; unfinished: Ticket[] } {
+export function selectAllTickets(ctx: SmithersCtx<any>, categories: ReadonlyArray<{ readonly id: string }>, outputs: any): { all: any[]; completed: string[]; unfinished: any[] } {
   const { tickets: reviewTickets } = selectReviewTickets(ctx, categories, outputs);
   const featureTickets = selectDiscoverTickets(ctx, outputs);
 
   // Merge and deduplicate tickets (review tickets take priority)
   const seenIds = new Set<string>();
-  const all: Ticket[] = [];
+  const all: any[] = [];
   for (const ticket of [...reviewTickets.sort(sortByPriority), ...featureTickets.sort(sortByPriority)]) {
     if (!seenIds.has(ticket.id)) {
       seenIds.add(ticket.id);
