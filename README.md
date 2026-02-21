@@ -116,16 +116,8 @@ export default smithers((ctx) => {
         findingsFile="docs/test-suite-findings.md"
         />
       }
-      codebaseReview={
-        <SuperRalph.CodebaseReview target={superRalphCtx.target}>
-          <CodebaseReview />
-        </SuperRalph.CodebaseReview>
-      }
-      ticketPipeline={
-        <SuperRalph.TicketPipeline target={superRalphCtx.target}>
-          <TicketPipeline />
-        </SuperRalph.TicketPipeline>
-      }
+      codebaseReview={<CodebaseReview target={superRalphCtx.target} />}
+      ticketPipeline={<TicketPipeline target={superRalphCtx.target} />}
     />
   );
 });
