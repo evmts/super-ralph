@@ -31,7 +31,7 @@ Each ticket must have:
 - `category`: One of: {props.categories.map(c => c.id).join(', ')}
 - `priority`: "critical", "high", "medium", or "low"
 - `ticketType`: always "feature"
-- `acceptanceCriteria`: Specific, verifiable criteria
+- `acceptanceCriteria`: Array of specific, verifiable strings (example: ["User can create repo", "CLI returns 0 on success"])
 - `testPlan`: How to verify
 - `estimatedComplexity`: "trivial", "small", "medium", or "large"
 - `dependencies`: Other ticket IDs this depends on (null if none)

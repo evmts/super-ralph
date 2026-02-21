@@ -5,7 +5,7 @@ Category: {props.ticketCategory}
 
 ## Acceptance Criteria
 
-{(props.acceptanceCriteria ?? []).map((c, i) => `${i + 1}. ${c}`).join('\n')}
+{(Array.isArray(props.acceptanceCriteria) ? props.acceptanceCriteria : []).map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
 ## Review Status
 

@@ -22,13 +22,58 @@ export interface Ticket {
 const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
 const sortByPriority = (a: Ticket, b: Ticket) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
 
+function toStringList(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    const list = value.map((v) => String(v).trim()).filter(Boolean);
+    return list.length > 0 ? list : undefined;
+  }
+  if (typeof value === "string") {
+    const text = value.trim();
+    if (!text) return undefined;
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^\s*([-*]|\d+\.)\s+/, "").trim())
+      .filter(Boolean);
+    return lines.length > 0 ? lines : [text];
+  }
+  return undefined;
+}
+
+function normalizePriority(value: unknown): Ticket["priority"] {
+  return value === "critical" || value === "high" || value === "medium" || value === "low"
+    ? value
+    : "medium";
+}
+
+function normalizeTicket(raw: unknown): Ticket | null {
+  if (!raw || typeof raw !== "object") return null;
+  const source = raw as Record<string, unknown>;
+  const id = typeof source.id === "string" ? source.id.trim() : "";
+  if (!id) return null;
+  return {
+    id,
+    title: typeof source.title === "string" && source.title.trim() ? source.title.trim() : id,
+    description: typeof source.description === "string" ? source.description : "",
+    category: typeof source.category === "string" && source.category.trim() ? source.category.trim() : "general",
+    priority: normalizePriority(source.priority),
+    acceptanceCriteria: toStringList(source.acceptanceCriteria),
+    relevantFiles: toStringList(source.relevantFiles),
+    referenceFiles: toStringList(source.referenceFiles),
+  };
+}
+
 export function selectReviewTickets(ctx: SmithersCtx<RalphOutputs>, focuses: ReadonlyArray<{ readonly id: string }>, outputs: RalphOutputs): { tickets: Ticket[]; findings: string | null } {
   const tickets: Ticket[] = [];
   const summaryParts: string[] = [];
 
   for (const { id } of focuses) {
     const review = ctx.outputMaybe(outputs.category_review, { nodeId: `codebase-review:${id}` });
-    if (review?.suggestedTickets) tickets.push(...review.suggestedTickets);
+    if (Array.isArray(review?.suggestedTickets)) {
+      for (const candidate of review.suggestedTickets) {
+        const normalized = normalizeTicket(candidate);
+        if (normalized) tickets.push(normalized);
+      }
+    }
     if (review && review.overallSeverity !== "none") {
       summaryParts.push(`${id} (${review.overallSeverity}): ${review.specCompliance.feedback}`);
     }
@@ -42,7 +87,13 @@ export function selectReviewTickets(ctx: SmithersCtx<RalphOutputs>, focuses: Rea
 
 export function selectDiscoverTickets(ctx: SmithersCtx<RalphOutputs>, outputs: RalphOutputs): Ticket[] {
   const discoverOutput = ctx.outputMaybe(outputs.discover, { nodeId: "discover" });
-  return discoverOutput?.tickets ?? [];
+  if (!Array.isArray(discoverOutput?.tickets)) return [];
+  const normalized: Ticket[] = [];
+  for (const candidate of discoverOutput.tickets) {
+    const ticket = normalizeTicket(candidate);
+    if (ticket) normalized.push(ticket);
+  }
+  return normalized;
 }
 
 export function selectCompletedTicketIds(ctx: SmithersCtx<RalphOutputs>, tickets: Ticket[], outputs: RalphOutputs): string[] {

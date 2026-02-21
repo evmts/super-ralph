@@ -5,6 +5,17 @@ import { z } from "zod";
  * Use these or extend them for your project.
  */
 
+const discoverTicketSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  category: z.string(),
+  priority: z.enum(["critical", "high", "medium", "low"]),
+  acceptanceCriteria: z.array(z.string()).nullable().optional(),
+  relevantFiles: z.array(z.string()).nullable().optional(),
+  referenceFiles: z.array(z.string()).nullable().optional(),
+});
+
 export const ralphOutputSchemas = {
   progress: z.object({
     progressFilePath: z.string().nullable(),
@@ -14,7 +25,7 @@ export const ralphOutputSchemas = {
   }),
 
   discover: z.object({
-    tickets: z.array(z.any()),
+    tickets: z.array(discoverTicketSchema),
     reasoning: z.string(),
     completionEstimate: z.string(),
   }),
