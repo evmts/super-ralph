@@ -140,4 +140,11 @@ export const ralphOutputSchemas = {
     needsHumanIntervention: z.array(z.string()).nullable(),
     suggestedTickets: z.array(z.string()).nullable(),
   }),
+
+  land: z.object({
+    merged: z.boolean(),
+    mergeCommit: z.string().nullable(),
+    ciPassed: z.boolean(),
+    summary: z.string(),
+  }),
 };
