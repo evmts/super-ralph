@@ -1,6 +1,8 @@
 import { Ralph, Parallel, Worktree, Task } from "smithers-orchestrator";
 import type { SmithersCtx } from "smithers-orchestrator";
 import { selectAllTickets, selectReviewTickets, selectProgressSummary } from "../selectors";
+import type { SuperRalphContext } from "../hooks/useSuperRalph";
+import { useSuperRalph } from "../hooks/useSuperRalph";
 import React from "react";
 
 export type SuperRalphPrompts = {
@@ -49,17 +51,23 @@ export type SuperRalphConfig = {
 };
 
 export type SuperRalphProps = {
-  ctx: SmithersCtx<any>;
+  ctx?: SmithersCtx<any>;
+  superRalphCtx?: SuperRalphContext;
   prompts: SuperRalphPrompts;
   agents: SuperRalphAgents;
   config: SuperRalphConfig;
   skipPhases?: Set<string>;
 };
 
-export function SuperRalph({ ctx, prompts, agents, config, skipPhases = new Set() }: SuperRalphProps) {
-  const { findings: reviewFindings } = selectReviewTickets(ctx, config.categories, config.outputs);
-  const { completed: completedTicketIds, unfinished: unfinishedTickets } = selectAllTickets(ctx, config.categories, config.outputs);
+export function SuperRalph({ ctx, superRalphCtx, prompts, agents, config, skipPhases = new Set() }: SuperRalphProps) {
+  // Controlled component: use provided superRalphCtx, or compute it from ctx
+  const workflowState = superRalphCtx ?? (ctx ? useSuperRalph(ctx, { categories: config.categories, outputs: config.outputs }) : null);
 
+  if (!workflowState) {
+    throw new Error("SuperRalph requires either ctx or superRalphCtx prop");
+  }
+
+  const { completedTicketIds, unfinishedTickets, reviewFindings } = workflowState;
   const { UpdateProgress, Discover } = prompts;
   const { CodebaseReview, TicketPipeline, IntegrationTest, target } = config;
 
@@ -91,7 +99,7 @@ export function SuperRalph({ ctx, prompts, agents, config, skipPhases = new Set(
             <Discover
               categories={config.categories}
               completedTicketIds={completedTicketIds}
-              previousProgress={selectProgressSummary(ctx, config.outputs)}
+              previousProgress={workflowState.progressSummary}
               reviewFindings={reviewFindings}
             />
           </Task>
@@ -101,7 +109,7 @@ export function SuperRalph({ ctx, prompts, agents, config, skipPhases = new Set(
 
         {unfinishedTickets.map((ticket: any) => (
           <Worktree key={ticket.id} id={`wt-${ticket.id}`} path={`/tmp/workflow-wt-${ticket.id}`}>
-            <TicketPipeline target={target} ticket={ticket} ctx={ctx} />
+            <TicketPipeline target={target} ticket={ticket} ctx={ctx!} />
           </Worktree>
         ))}
       </Parallel>

@@ -17,6 +17,8 @@ bun add @evmts/super-ralph smithers-orchestrator
 
 ## Usage
 
+### Uncontrolled (pass ctx directly)
+
 ```typescript
 import { SuperRalph } from "@evmts/super-ralph";
 import { Workflow, smithers, outputs } from "./smithers";
@@ -146,6 +148,45 @@ export default smithers((ctx) => {
   );
 });
 ```
+
+### Controlled (use hook for custom logic)
+
+```typescript
+import { SuperRalph, useSuperRalph } from "@evmts/super-ralph";
+import { Workflow, smithers, outputs } from "./smithers";
+import { categories } from "./categories";
+
+export default smithers((ctx) => {
+  // Use hook to extract workflow state
+  const superRalphCtx = useSuperRalph(ctx, { categories, outputs });
+
+  // You can now access and manipulate state before passing to SuperRalph
+  console.log(`Processing ${superRalphCtx.unfinishedTickets.length} tickets`);
+
+  return (
+    <Workflow name="my-workflow">
+      <SuperRalph
+        superRalphCtx={superRalphCtx}  {/* Pass controlled context */}
+        prompts={{ /* ... */ }}
+        agents={{ /* ... */ }}
+        config={{ /* ... */ }}
+      />
+    </Workflow>
+  );
+});
+```
+
+The controlled pattern gives you access to:
+- `completedTicketIds` - IDs of finished tickets
+- `unfinishedTickets` - Tickets to process
+- `reviewFindings` - Summary of codebase review findings
+- `progressSummary` - Latest progress summary
+
+Use this when you need to:
+- Log workflow state
+- Add custom logic before rendering
+- Filter or transform tickets
+- Pass state to other components
 
 ## What You Provide
 

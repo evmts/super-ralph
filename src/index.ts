@@ -29,6 +29,8 @@ import type { Ticket } from "./selectors";
 
 import { SuperRalph } from "./components/SuperRalph";
 import type { SuperRalphProps, SuperRalphConfig, SuperRalphAgents, SuperRalphPrompts } from "./components/SuperRalph";
+import { useSuperRalph } from "./hooks/useSuperRalph";
+import type { SuperRalphContext, UseSuperRalphConfig } from "./hooks/useSuperRalph";
 
 export {
   // Selectors
@@ -45,6 +47,9 @@ export {
   selectSpecReview,
   selectCodeReviews,
 
+  // Hooks
+  useSuperRalph,
+
   // Components
   SuperRalph,
 };
@@ -55,4 +60,6 @@ export type {
   SuperRalphConfig,
   SuperRalphAgents,
   SuperRalphPrompts,
+  SuperRalphContext,
+  UseSuperRalphConfig,
 };
