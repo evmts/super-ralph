@@ -12,6 +12,32 @@ Supports subscriptions.
 bun add super-ralph smithers-orchestrator
 ```
 
+## CLI
+
+`super-ralph` can wrap this workflow directly from a prompt string or prompt file:
+
+```bash
+super-ralph "Build a merge queue dashboard with jj-native workflows"
+super-ralph ./PROMPT.md
+```
+
+What the CLI does:
+- Preflight checks for `jj` and gives install/setup instructions if missing
+- Auto-detects `claude` and `codex` CLIs on startup
+- Runs a first planning pass that interprets your prompt into `SuperRalph` props (focuses, test/build commands, checks, etc.)
+- Generates a runnable workflow at `.super-ralph/generated/workflow.tsx`
+- Runs Smithers with a built-in OpenTUI monitor
+- Emits throttled status reports every 5 minutes from workflow outputs + git history deltas
+- Detects error patterns and suggests likely fixes
+- If `gh` is installed, prepares issue drafts and prints `gh issue create` commands
+
+Useful options:
+
+```bash
+super-ralph ./PROMPT.md --max-concurrency 12 --report-interval-minutes 5
+super-ralph ./PROMPT.md --dry-run
+```
+
 ## Usage
 
 ```tsx
@@ -118,7 +144,7 @@ This means **no code lands on main without passing reviews AND post-rebase CI on
     testing: ...,
     reviewing: ...,
     reporting: ...,
-    mergeQueue: new CodexAgent({ model: "gpt-5.3-codex", cwd: process.cwd(), yolo: true }),
+    mergeQueue: new KimiAgent({ model: "kimi-code/kimi-for-coding", cwd: process.cwd(), yolo: true, thinking: true }),
   }}
   mergeQueueOrdering="report-complete-fifo"
   maxSpeculativeDepth={3}

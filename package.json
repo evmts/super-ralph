@@ -6,6 +6,9 @@
   "license": "MIT",
   "type": "module",
   "module": "src/index.ts",
+  "bin": {
+    "super-ralph": "src/cli/index.ts"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./selectors": "./src/selectors.ts",
@@ -37,7 +40,8 @@
     "code-review"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cli": "bun run src/cli/index.ts"
   },
   "peerDependencies": {
     "smithers-orchestrator": "*"
@@ -50,5 +54,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.81"
   }
 }
