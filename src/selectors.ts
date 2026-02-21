@@ -1,9 +1,12 @@
 import type { SmithersCtx } from "smithers-orchestrator";
+import type { ralphOutputSchemas } from "./schemas";
 
 /**
  * Generic selectors for Ralph workflow pattern.
  * These can be extended/overridden by specific workflows.
  */
+
+export type RalphOutputs = typeof ralphOutputSchemas;
 
 export interface Ticket {
   id: string;
@@ -17,14 +20,14 @@ export interface Ticket {
 }
 
 const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-const sortByPriority = (a: any, b: any) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
+const sortByPriority = (a: Ticket, b: Ticket) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
 
-export function selectReviewTickets(ctx: SmithersCtx<any>, focuses: ReadonlyArray<{ readonly id: string }>, outputs: any): { tickets: any[]; findings: string | null } {
+export function selectReviewTickets(ctx: SmithersCtx<RalphOutputs>, focuses: ReadonlyArray<{ readonly id: string }>, outputs: RalphOutputs): { tickets: Ticket[]; findings: string | null } {
   const tickets: Ticket[] = [];
   const summaryParts: string[] = [];
 
   for (const { id } of focuses) {
-    const review = ctx.outputMaybe(outputs.category_review, { nodeId: `codebase-review:${id}` }) as any;
+    const review = ctx.outputMaybe(outputs.category_review, { nodeId: `codebase-review:${id}` });
     if (review?.suggestedTickets) tickets.push(...review.suggestedTickets);
     if (review && review.overallSeverity !== "none") {
       summaryParts.push(`${id} (${review.overallSeverity}): ${review.specCompliance.feedback}`);
@@ -37,32 +40,32 @@ export function selectReviewTickets(ctx: SmithersCtx<any>, focuses: ReadonlyArra
   };
 }
 
-export function selectDiscoverTickets(ctx: SmithersCtx<any>, outputs: any): any[] {
-  const discoverOutput = ctx.outputMaybe(outputs.discover, { nodeId: "discover" }) as any;
+export function selectDiscoverTickets(ctx: SmithersCtx<RalphOutputs>, outputs: RalphOutputs): Ticket[] {
+  const discoverOutput = ctx.outputMaybe(outputs.discover, { nodeId: "discover" });
   return discoverOutput?.tickets ?? [];
 }
 
-export function selectCompletedTicketIds(ctx: SmithersCtx<any>, tickets: any[], outputs: any): string[] {
+export function selectCompletedTicketIds(ctx: SmithersCtx<RalphOutputs>, tickets: Ticket[], outputs: RalphOutputs): string[] {
   return tickets
     .filter((t) => {
-      const report = ctx.outputMaybe(outputs.report, { nodeId: `${t.id}:report` }) as any;
+      const report = ctx.outputMaybe(outputs.report, { nodeId: `${t.id}:report` });
       return report?.status === "complete";
     })
     .map((t) => t.id);
 }
 
-export function selectProgressSummary(ctx: SmithersCtx<any>, outputs: any): string | null {
-  const progress = ctx.outputMaybe(outputs.progress, { nodeId: "update-progress" }) as any;
+export function selectProgressSummary(ctx: SmithersCtx<RalphOutputs>, outputs: RalphOutputs): string | null {
+  const progress = ctx.outputMaybe(outputs.progress, { nodeId: "update-progress" });
   return progress?.summary ?? null;
 }
 
-export function selectAllTickets(ctx: SmithersCtx<any>, focuses: ReadonlyArray<{ readonly id: string }>, outputs: any): { all: any[]; completed: string[]; unfinished: any[] } {
+export function selectAllTickets(ctx: SmithersCtx<RalphOutputs>, focuses: ReadonlyArray<{ readonly id: string }>, outputs: RalphOutputs): { all: Ticket[]; completed: string[]; unfinished: Ticket[] } {
   const { tickets: reviewTickets } = selectReviewTickets(ctx, focuses, outputs);
   const featureTickets = selectDiscoverTickets(ctx, outputs);
 
   // Merge and deduplicate tickets (review tickets take priority)
   const seenIds = new Set<string>();
-  const all: any[] = [];
+  const all: Ticket[] = [];
   for (const ticket of [...reviewTickets.sort(sortByPriority), ...featureTickets.sort(sortByPriority)]) {
     if (!seenIds.has(ticket.id)) {
       seenIds.add(ticket.id);
@@ -76,37 +79,37 @@ export function selectAllTickets(ctx: SmithersCtx<any>, focuses: ReadonlyArray<{
   return { all, completed, unfinished };
 }
 
-export function selectTicketReport(ctx: SmithersCtx<any>, ticketId: string, outputs: any): any {
-  return ctx.outputMaybe(outputs.report, { nodeId: `${ticketId}:report` }) as any;
+export function selectTicketReport(ctx: SmithersCtx<RalphOutputs>, ticketId: string, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.report, { nodeId: `${ticketId}:report` });
 }
 
-export function selectResearch(ctx: SmithersCtx<any>, ticketId: string, outputs: any): any {
-  return ctx.outputMaybe(outputs.research, { nodeId: `${ticketId}:research` }) as any;
+export function selectResearch(ctx: SmithersCtx<RalphOutputs>, ticketId: string, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.research, { nodeId: `${ticketId}:research` });
 }
 
-export function selectPlan(ctx: SmithersCtx<any>, ticketId: string, outputs: any): any {
-  return ctx.outputMaybe(outputs.plan, { nodeId: `${ticketId}:plan` }) as any;
+export function selectPlan(ctx: SmithersCtx<RalphOutputs>, ticketId: string, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.plan, { nodeId: `${ticketId}:plan` });
 }
 
-export function selectImplement(ctx: SmithersCtx<any>, ticketId: string, outputs: any): any {
-  return ctx.outputMaybe(outputs.implement, { nodeId: `${ticketId}:implement` }) as any;
+export function selectImplement(ctx: SmithersCtx<RalphOutputs>, ticketId: string, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.implement, { nodeId: `${ticketId}:implement` });
 }
 
-export function selectTestResults(ctx: SmithersCtx<any>, ticketId: string, outputs: any): any {
-  return ctx.outputMaybe(outputs.test_results, { nodeId: `${ticketId}:test` }) as any;
+export function selectTestResults(ctx: SmithersCtx<RalphOutputs>, ticketId: string, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.test_results, { nodeId: `${ticketId}:test` });
 }
 
-export function selectSpecReview(ctx: SmithersCtx<any>, ticketId: string, outputs: any): any {
-  return ctx.outputMaybe(outputs.spec_review, { nodeId: `${ticketId}:spec-review` }) as any;
+export function selectSpecReview(ctx: SmithersCtx<RalphOutputs>, ticketId: string, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.spec_review, { nodeId: `${ticketId}:spec-review` });
 }
 
-export function selectCodeReviews(ctx: SmithersCtx<any>, ticketId: string, outputs: any) {
-  const claude = ctx.outputMaybe(outputs.code_review, { nodeId: `${ticketId}:code-review` }) as any;
-  const codex = ctx.outputMaybe(outputs.code_review_codex, { nodeId: `${ticketId}:code-review-codex` }) as any;
-  const gemini = ctx.outputMaybe(outputs.code_review_gemini, { nodeId: `${ticketId}:code-review-gemini` }) as any;
+export function selectCodeReviews(ctx: SmithersCtx<RalphOutputs>, ticketId: string, outputs: RalphOutputs) {
+  const claude = ctx.outputMaybe(outputs.code_review, { nodeId: `${ticketId}:code-review` });
+  const codex = ctx.outputMaybe(outputs.code_review_codex, { nodeId: `${ticketId}:code-review-codex` });
+  const gemini = ctx.outputMaybe(outputs.code_review_gemini, { nodeId: `${ticketId}:code-review-gemini` });
 
   const severityRank: Record<string, number> = { critical: 3, major: 2, minor: 1, none: 0 };
-  const severities = [claude?.severity, codex?.severity, gemini?.severity].filter(Boolean);
+  const severities = [claude?.severity, codex?.severity, gemini?.severity].filter(Boolean) as string[];
   const worstSeverity = severities.length > 0
     ? severities.reduce((worst, s) => (severityRank[s] ?? 0) > (severityRank[worst] ?? 0) ? s : worst, "none")
     : "none";

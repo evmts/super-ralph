@@ -1,6 +1,7 @@
 import { Ralph, Parallel, Sequence, Worktree, Task } from "smithers-orchestrator";
 import type { SmithersCtx } from "smithers-orchestrator";
-import { selectAllTickets, selectReviewTickets, selectProgressSummary, selectImplement, selectTestResults, selectSpecReview, selectCodeReviews } from "../selectors";
+import { selectAllTickets, selectReviewTickets, selectProgressSummary, selectImplement, selectTestResults, selectSpecReview, selectCodeReviews, selectResearch, selectPlan, selectTicketReport } from "../selectors";
+import type { RalphOutputs, Ticket } from "../selectors";
 import React, { type ReactElement, type ReactNode } from "react";
 import UpdateProgressPrompt from "../prompts/UpdateProgress.mdx";
 import DiscoverPrompt from "../prompts/Discover.mdx";
@@ -18,9 +19,9 @@ import CategoryReviewPrompt from "../prompts/CategoryReview.mdx";
 
 // Main component props (simple API)
 export type SuperRalphProps = {
-  ctx: SmithersCtx<any>;
+  ctx: SmithersCtx<RalphOutputs>;
   focuses: ReadonlyArray<{ readonly id: string; readonly name: string }>;
-  outputs: any;
+  outputs: RalphOutputs;
 
   // Project config (flattened)
   projectId: string;
@@ -196,15 +197,15 @@ export function SuperRalph({
           </Parallel>
         ))}
 
-        {unfinishedTickets.map((ticket: any) => {
-          const researchData = ctx.outputMaybe(outputs.research, { nodeId: `${ticket.id}:research` });
-          const planData = ctx.outputMaybe(outputs.plan, { nodeId: `${ticket.id}:plan` });
+        {unfinishedTickets.map((ticket: Ticket) => {
+          const researchData = selectResearch(ctx, ticket.id, outputs);
+          const planData = selectPlan(ctx, ticket.id, outputs);
           const contextFilePath = researchData?.contextFilePath ?? `docs/context/${ticket.id}.md`;
           const planFilePath = planData?.planFilePath ?? `docs/plans/${ticket.id}.md`;
 
           return (
             <Worktree key={ticket.id} id={`wt-${ticket.id}`} path={`/tmp/workflow-wt-${ticket.id}`}>
-              <Sequence skipIf={ctx.outputMaybe(outputs.report, { nodeId: `${ticket.id}:report` })?.status === "complete"}>
+              <Sequence skipIf={selectTicketReport(ctx, ticket.id, outputs)?.status === "complete"}>
                 {customResearch || (
                   <Task id={`${ticket.id}:research`} output={outputs.research} agent={planningAgent} retries={taskRetries}>
                     <ResearchPrompt
@@ -241,9 +242,9 @@ export function SuperRalph({
                 {/* ValidationLoop */}
                 <Sequence>
                   {(() => {
-                    const latestImplement = selectImplement(ctx, ticket.id);
-                    const latestTest = selectTestResults(ctx, ticket.id);
-                    const latestSpecReview = selectSpecReview(ctx, ticket.id);
+                    const latestImplement = selectImplement(ctx, ticket.id, outputs);
+                    const latestTest = selectTestResults(ctx, ticket.id, outputs);
+                    const latestSpecReview = selectSpecReview(ctx, ticket.id, outputs);
                     const { worstSeverity: worstCodeSeverity, mergedIssues: mergedCodeIssues, mergedFeedback: mergedCodeFeedback } = selectCodeReviews(ctx, ticket.id, outputs);
 
                     const specApproved = latestSpecReview?.severity === "none";
@@ -386,14 +387,14 @@ export function SuperRalph({
                       ticketTitle={ticket.title}
                       ticketCategory={ticket.category}
                       acceptanceCriteria={ticket.acceptanceCriteria ?? []}
-                      specSeverity={ctx.outputMaybe(outputs.spec_review, { nodeId: `${ticket.id}:spec-review` })?.severity ?? "none"}
+                      specSeverity={selectSpecReview(ctx, ticket.id, outputs)?.severity ?? "none"}
                       codeSeverity={selectCodeReviews(ctx, ticket.id, outputs).worstSeverity}
-                      allIssuesResolved={ctx.outputMaybe(outputs.review_fix, { nodeId: `${ticket.id}:review-fix` })?.allIssuesResolved ?? true}
+                      allIssuesResolved={(ctx.outputMaybe("review_fix", { nodeId: `${ticket.id}:review-fix` }) as any)?.allIssuesResolved ?? true}
                       reviewRounds={1}
-                      goTests={selectTestResults(ctx, ticket.id)?.goTestsPassed ? "PASS" : "FAIL"}
-                      rustTests={selectTestResults(ctx, ticket.id)?.rustTestsPassed ? "PASS" : "FAIL"}
-                      e2eTests={selectTestResults(ctx, ticket.id)?.e2eTestsPassed ? "PASS" : "FAIL"}
-                      sqlcGen={selectTestResults(ctx, ticket.id)?.sqlcGenPassed ? "PASS" : "FAIL"}
+                      goTests={selectTestResults(ctx, ticket.id, outputs)?.goTestsPassed ? "PASS" : "FAIL"}
+                      rustTests={selectTestResults(ctx, ticket.id, outputs)?.rustTestsPassed ? "PASS" : "FAIL"}
+                      e2eTests={selectTestResults(ctx, ticket.id, outputs)?.e2eTestsPassed ? "PASS" : "FAIL"}
+                      sqlcGen={selectTestResults(ctx, ticket.id, outputs)?.sqlcGenPassed ? "PASS" : "FAIL"}
                     />
                   </Task>
                 )}

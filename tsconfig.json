@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     "strict": false,
     "forceConsistentCasingInFileNames": true,
-    "types": ["@types/react"]
+    "types": ["@types/react", "bun-types"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

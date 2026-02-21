@@ -25,7 +25,7 @@ import {
   selectCodeReviews,
 } from "./selectors";
 
-import type { Ticket } from "./selectors";
+import type { Ticket, RalphOutputs } from "./selectors";
 
 import { SuperRalph } from "./components";
 import type { SuperRalphProps } from "./components/SuperRalph";
@@ -60,6 +60,7 @@ export {
 
 export type {
   Ticket,
+  RalphOutputs,
   SuperRalphProps,
   SuperRalphContext,
   UseSuperRalphConfig,
