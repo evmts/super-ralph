@@ -39,10 +39,16 @@ const target = {
   referenceFiles: ["docs/reference/"],
 };
 
-// 4. Create stub components (implement later)
-const CodebaseReview = ({ target }: any) => null;
-const TicketPipeline = ({ target, ticket, ctx }: any) => null;
-const IntegrationTest = ({ target }: any) => null;
+// 4. Import your orchestrator components
+// These contain your domain-specific logic for:
+// - CodebaseReview: Review code per category, suggest tickets
+// - TicketPipeline: Research → Plan → Implement → Test → Review → Report
+// - IntegrationTest: Run integration tests per category
+//
+// See https://github.com/evmts/plue/tree/main/workflow/components for reference
+import { CodebaseReview } from "./components/CodebaseReview";
+import { TicketPipeline } from "./components/TicketPipeline";
+import { IntegrationTest } from "./components/IntegrationTest";
 
 // 5. Create workflow
 export default smithers((ctx) => {
