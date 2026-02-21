@@ -27,8 +27,8 @@ import {
 
 import type { Ticket } from "./selectors";
 
-import { SuperRalph, IntegrationTest } from "./components";
-import type { SuperRalphProps, SuperRalphAgents, SuperRalphPromptConfig } from "./components/SuperRalph";
+import { SuperRalph } from "./components";
+import type { SuperRalphProps } from "./components/SuperRalph";
 import { useSuperRalph } from "./hooks/useSuperRalph";
 import type { SuperRalphContext, UseSuperRalphConfig } from "./hooks/useSuperRalph";
 import { ralphOutputSchemas } from "./schemas";
@@ -51,9 +51,8 @@ export {
   // Hooks
   useSuperRalph,
 
-  // Components
+  // Main Component
   SuperRalph,
-  IntegrationTest,
 
   // Schemas
   ralphOutputSchemas,
@@ -62,8 +61,6 @@ export {
 export type {
   Ticket,
   SuperRalphProps,
-  SuperRalphAgents,
-  SuperRalphPromptConfig,
   SuperRalphContext,
   UseSuperRalphConfig,
 };
