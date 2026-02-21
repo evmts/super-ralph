@@ -2,10 +2,13 @@ import type { SmithersCtx } from "smithers-orchestrator";
 import { selectAllTickets, selectReviewTickets, selectProgressSummary } from "../selectors";
 
 export type SuperRalphContext = {
+  ctx: SmithersCtx<any>;
   completedTicketIds: string[];
   unfinishedTickets: any[];
   reviewFindings: string | null;
   progressSummary: string | null;
+  categories: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  outputs: any;
 };
 
 export type UseSuperRalphConfig = {
@@ -23,9 +26,12 @@ export function useSuperRalph(ctx: SmithersCtx<any>, config: UseSuperRalphConfig
   const progressSummary = selectProgressSummary(ctx, config.outputs);
 
   return {
+    ctx,
     completedTicketIds,
     unfinishedTickets,
     reviewFindings,
     progressSummary,
+    categories: config.categories,
+    outputs: config.outputs,
   };
 }

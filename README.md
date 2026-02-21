@@ -35,14 +35,8 @@ export default smithers((ctx) => {
   return (
     <SuperRalph
       superRalphCtx={superRalphCtx}
-      ctx={ctx}
       maxConcurrency={12}
       taskRetries={3}
-      categories={[
-        { id: "auth", name: "Authentication" },
-        { id: "api", name: "API Server" },
-      ]}
-      outputs={outputs}
       target={{
         id: "my-project",
         name: "My Project",

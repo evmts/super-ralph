@@ -19,11 +19,13 @@ type UpdateProgressProps = {
 type DiscoverProps = {
   agent: any;
   fallbackAgent: any;
+  categories: ReadonlyArray<{ readonly id: string; readonly name: string }>;
 };
 
 type IntegrationTestProps = {
   agent: any;
   fallbackAgent: any;
+  categories: ReadonlyArray<{ readonly id: string; readonly name: string }>;
   categoryTestSuites: Record<string, { suites: string[]; setupHints: string[]; testDirs: string[] }>;
   findingsFile: string;
 };
@@ -39,11 +41,8 @@ type TicketPipelineProps = {
 // Main component props
 export type SuperRalphProps = {
   superRalphCtx: SuperRalphContext;
-  ctx: SmithersCtx<any>;
   maxConcurrency: number;
   taskRetries: number;
-  categories: ReadonlyArray<{ readonly id: string; readonly name: string }>;
-  outputs: any;
   target: any;
   skipPhases?: Set<string>;
   children: React.ReactNode;
@@ -51,16 +50,13 @@ export type SuperRalphProps = {
 
 export function SuperRalph({
   superRalphCtx,
-  ctx,
   maxConcurrency,
   taskRetries,
-  categories,
-  outputs,
   target,
   skipPhases = new Set(),
   children,
 }: SuperRalphProps) {
-  const { completedTicketIds, unfinishedTickets, reviewFindings, progressSummary } = superRalphCtx;
+  const { ctx, completedTicketIds, unfinishedTickets, reviewFindings, progressSummary, categories, outputs } = superRalphCtx;
 
   // Extract child components from children
   const childArray = React.Children.toArray(children);
