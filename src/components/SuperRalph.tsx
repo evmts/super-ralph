@@ -104,6 +104,18 @@ function normalizeAgent(agentOrArray: any | any[]): any | any[] {
   return agentOrArray; // Just return as-is, Task handles arrays now
 }
 
+/**
+ * Round-robin agent selection: rotates primary agent by index,
+ * remaining agents become ordered fallbacks for retries.
+ * e.g. agents=[A,B,C,D], index=1 → [B,C,D,A]
+ */
+function roundRobinAgent(agentOrArray: any | any[], index: number): any | any[] {
+  if (!Array.isArray(agentOrArray)) return agentOrArray;
+  if (agentOrArray.length <= 1) return agentOrArray;
+  const offset = index % agentOrArray.length;
+  return [...agentOrArray.slice(offset), ...agentOrArray.slice(0, offset)];
+}
+
 function readIteration(row: unknown): number {
   const n = Number((row as any)?.iteration);
   return Number.isFinite(n) ? n : 0;
@@ -273,7 +285,7 @@ export function SuperRalph({
           </Parallel>
         ))}
 
-        {ticketState.map((ticketRuntime) => {
+        {ticketState.map((ticketRuntime, ticketIndex) => {
           const ticket = ticketRuntime.ticket;
           const researchData = selectResearch(ctx, ticket.id, outputs);
           const planData = selectPlan(ctx, ticket.id, outputs);
@@ -282,6 +294,12 @@ export function SuperRalph({
           const landed = ticketRuntime.landed;
           const reportComplete = ticketRuntime.reportComplete;
           const evictionContext = ticketRuntime.evictionContext;
+
+          // Round-robin agent selection per ticket
+          const ticketPlanningAgent = roundRobinAgent(planningAgent, ticketIndex);
+          const ticketImplementationAgent = roundRobinAgent(implementationAgent, ticketIndex);
+          const ticketTestingAgent = roundRobinAgent(testingAgent, ticketIndex);
+          const ticketReportingAgent = roundRobinAgent(reportingAgent, ticketIndex);
 
           const mergeQueueRequest: MergeQueueRequest = {
             runId: ctx.runId,
@@ -301,7 +319,7 @@ export function SuperRalph({
               <Worktree id={`wt-${ticket.id}`} path={`/tmp/workflow-wt-${ticket.id}`} branch={`ticket/${ticket.id}`}>
                 <Sequence skipIf={reportComplete}>
                   {customResearch || (
-                    <Task id={`${ticket.id}:research`} output={outputs.research} agent={planningAgent} retries={taskRetries}>
+                    <Task id={`${ticket.id}:research`} output={outputs.research} agent={ticketPlanningAgent} retries={taskRetries}>
                       <ResearchPrompt
                         ticketId={ticket.id}
                         ticketTitle={ticket.title}
@@ -317,7 +335,7 @@ export function SuperRalph({
                   )}
 
                   {customPlan || (
-                    <Task id={`${ticket.id}:plan`} output={outputs.plan} agent={planningAgent} retries={taskRetries}>
+                    <Task id={`${ticket.id}:plan`} output={outputs.plan} agent={ticketPlanningAgent} retries={taskRetries}>
                       <PlanPrompt
                         ticketId={ticket.id}
                         ticketTitle={ticket.title}
@@ -364,7 +382,7 @@ export function SuperRalph({
                       return (
                         <>
                           {customImplement || (
-                            <Task id={`${ticket.id}:implement`} output={outputs.implement} agent={implementationAgent} retries={taskRetries}>
+                            <Task id={`${ticket.id}:implement`} output={outputs.implement} agent={ticketImplementationAgent} retries={taskRetries}>
                               <ImplementPrompt
                                 ticketId={ticket.id}
                                 ticketTitle={ticket.title}
@@ -389,7 +407,7 @@ export function SuperRalph({
                           )}
 
                           {customTest || (
-                            <Task id={`${ticket.id}:test`} output={outputs.test_results} agent={testingAgent} retries={taskRetries}>
+                            <Task id={`${ticket.id}:test`} output={outputs.test_results} agent={ticketTestingAgent} retries={taskRetries}>
                               <TestPrompt
                                 ticketId={ticket.id}
                                 ticketTitle={ticket.title}
@@ -406,7 +424,7 @@ export function SuperRalph({
                           )}
 
                           {customBuildVerify || (
-                            <Task id={`${ticket.id}:build-verify`} output={outputs.build_verify} agent={testingAgent} retries={taskRetries}>
+                            <Task id={`${ticket.id}:build-verify`} output={outputs.build_verify} agent={ticketTestingAgent} retries={taskRetries}>
                               <BuildVerifyPrompt
                                 ticketId={ticket.id}
                                 ticketTitle={ticket.title}
@@ -454,7 +472,7 @@ export function SuperRalph({
                           </Parallel>
 
                           {customReviewFix || (!noReviewIssues && (
-                            <Task id={`${ticket.id}:review-fix`} output={outputs.review_fix} agent={implementationAgent} retries={taskRetries}>
+                            <Task id={`${ticket.id}:review-fix`} output={outputs.review_fix} agent={ticketImplementationAgent} retries={taskRetries}>
                               <ReviewFixPrompt
                                 ticketId={ticket.id}
                                 ticketTitle={ticket.title}
@@ -478,7 +496,7 @@ export function SuperRalph({
                   </Sequence>
 
                   {customReport || (
-                    <Task id={`${ticket.id}:report`} output={outputs.report} agent={reportingAgent} retries={taskRetries}>
+                    <Task id={`${ticket.id}:report`} output={outputs.report} agent={ticketReportingAgent} retries={taskRetries}>
                       <ReportPrompt
                         ticketId={ticket.id}
                         ticketTitle={ticket.title}

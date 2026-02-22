@@ -23,12 +23,26 @@ import {
   selectTestResults,
   selectSpecReview,
   selectCodeReviews,
+  selectClarifyingQuestions,
+  selectInterpretConfig,
+  selectMonitor,
 } from "./selectors";
 
 import type { Ticket, RalphOutputs } from "./selectors";
 
-import { SuperRalph } from "./components";
+import {
+  SuperRalph,
+  ClarifyingQuestions,
+  InterpretConfig,
+  Monitor,
+  clarifyingQuestionsOutputSchema,
+  interpretConfigOutputSchema,
+  monitorOutputSchema,
+} from "./components";
 import type { SuperRalphProps } from "./components/SuperRalph";
+import type { ClarifyingQuestionsOutput, ClarifyingQuestionsProps } from "./components/ClarifyingQuestions";
+import type { InterpretConfigOutput, InterpretConfigProps } from "./components/InterpretConfig";
+import type { MonitorOutput, MonitorProps } from "./components/Monitor";
 import { useSuperRalph } from "./hooks/useSuperRalph";
 import type { SuperRalphContext, UseSuperRalphConfig } from "./hooks/useSuperRalph";
 import { ralphOutputSchemas } from "./schemas";
@@ -47,15 +61,24 @@ export {
   selectTestResults,
   selectSpecReview,
   selectCodeReviews,
+  selectClarifyingQuestions,
+  selectInterpretConfig,
+  selectMonitor,
 
   // Hooks
   useSuperRalph,
 
-  // Main Component
+  // Components
   SuperRalph,
+  ClarifyingQuestions,
+  InterpretConfig,
+  Monitor,
 
   // Schemas
   ralphOutputSchemas,
+  clarifyingQuestionsOutputSchema,
+  interpretConfigOutputSchema,
+  monitorOutputSchema,
 };
 
 export type {
@@ -64,4 +87,10 @@ export type {
   SuperRalphProps,
   SuperRalphContext,
   UseSuperRalphConfig,
+  ClarifyingQuestionsOutput,
+  ClarifyingQuestionsProps,
+  InterpretConfigOutput,
+  InterpretConfigProps,
+  MonitorOutput,
+  MonitorProps,
 };

@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { clarifyingQuestionsOutputSchema } from "./components/ClarifyingQuestions";
+import { interpretConfigOutputSchema } from "./components/InterpretConfig";
+import { monitorOutputSchema } from "./components/Monitor";
 
 /**
  * Standard output schemas for Ralph workflow pattern.
@@ -17,6 +20,10 @@ const discoverTicketSchema = z.object({
 });
 
 export const ralphOutputSchemas = {
+  clarifying_questions: clarifyingQuestionsOutputSchema,
+  interpret_config: interpretConfigOutputSchema,
+  monitor: monitorOutputSchema,
+
   progress: z.object({
     progressFilePath: z.string().nullable(),
     summary: z.string(),

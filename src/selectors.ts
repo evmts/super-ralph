@@ -190,3 +190,15 @@ export function selectCodeReviews(ctx: SmithersCtx<RalphOutputs>, ticketId: stri
     mergedFeedback,
   };
 }
+
+export function selectClarifyingQuestions(ctx: SmithersCtx<RalphOutputs>, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.clarifying_questions, { nodeId: "clarifying-questions" });
+}
+
+export function selectInterpretConfig(ctx: SmithersCtx<RalphOutputs>, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.interpret_config, { nodeId: "interpret-config" });
+}
+
+export function selectMonitor(ctx: SmithersCtx<RalphOutputs>, outputs: RalphOutputs) {
+  return ctx.outputMaybe(outputs.monitor, { nodeId: "monitor" });
+}
