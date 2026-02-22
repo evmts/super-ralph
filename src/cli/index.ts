@@ -282,11 +282,29 @@ function renderWorkflowFile(params: {
 }): string {
   const { promptText, promptSpecPath, repoRoot, dbPath, packageScripts, detectedAgents, fallbackConfig, skipQuestions } = params;
 
-  // Determine if we're running from within the super-ralph repo itself
-  // Check if the repo root contains our source files
+  // Determine import strategy:
+  // If target repo is super-ralph itself, use relative imports
+  // If running from super-ralph source for another repo, use absolute paths to source
+  // Otherwise, use package imports
   const isSuperRalphRepo = existsSync(join(repoRoot, 'src/components/SuperRalph.tsx')) &&
                            existsSync(join(repoRoot, 'src/components/ClarifyingQuestions.tsx'));
-  const importPrefix = isSuperRalphRepo ? '../../src' : 'super-ralph';
+
+  // Check if we're running from super-ralph source (CLI location)
+  const cliDir = import.meta.dir || dirname(fileURLToPath(import.meta.url));
+  const superRalphSourceRoot = dirname(dirname(cliDir));
+  const runningFromSource = existsSync(join(superRalphSourceRoot, 'src/components/SuperRalph.tsx'));
+
+  let importPrefix: string;
+  if (isSuperRalphRepo) {
+    // Generating workflow IN super-ralph repo - use relative imports
+    importPrefix = '../../src';
+  } else if (runningFromSource) {
+    // Running from super-ralph source for another repo - use absolute imports to source
+    importPrefix = superRalphSourceRoot + '/src';
+  } else {
+    // Running from installed package
+    importPrefix = 'super-ralph';
+  }
 
   return `import React from "react";
 import { createSmithers, ClaudeCodeAgent, CodexAgent } from "smithers-orchestrator";
