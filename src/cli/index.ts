@@ -518,7 +518,6 @@ async function main() {
   const args = [
     "-r",
     preloadPath,
-    "run",
     smithersCliPath,
     "run",
     workflowPath,
