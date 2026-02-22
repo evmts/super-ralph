@@ -372,7 +372,7 @@ export default smithers((ctx) => (
         clarificationSession={
           SKIP_QUESTIONS
             ? null
-            : (ctx.outputMaybe("collect-clarification-answers") as any)?.session ?? null
+            : (ctx.outputMaybe("collect-clarification-answers", outputs.clarifying_questions) as any)?.session ?? null
         }
         repoRoot={REPO_ROOT}
         fallbackConfig={FALLBACK_CONFIG}
@@ -390,7 +390,7 @@ export default smithers((ctx) => (
         <SuperRalph
           ctx={ctx}
           outputs={outputs}
-          {...((ctx.output("interpret-config") as any) || FALLBACK_CONFIG)}
+          {...((ctx.outputMaybe("interpret-config", outputs.interpret_config) as any) || FALLBACK_CONFIG)}
           agents={{
             planning: planningAgent,
             implementation: implementationAgent,
@@ -403,11 +403,11 @@ export default smithers((ctx) => (
         <Monitor
           dbPath={DB_PATH}
           runId={ctx.runId}
-          config={(ctx.outputMaybe("interpret-config") as any) || FALLBACK_CONFIG}
+          config={(ctx.outputMaybe("interpret-config", outputs.interpret_config) as any) || FALLBACK_CONFIG}
           clarificationSession={
             SKIP_QUESTIONS
               ? null
-              : (ctx.outputMaybe("collect-clarification-answers") as any)?.session ?? null
+              : (ctx.outputMaybe("collect-clarification-answers", outputs.clarifying_questions) as any)?.session ?? null
           }
           prompt={PROMPT_TEXT}
           repoRoot={REPO_ROOT}
