@@ -3,7 +3,7 @@ import type { SmithersCtx, AgentLike } from "smithers-orchestrator";
 import { selectAllTickets, selectReviewTickets, selectProgressSummary, selectLand, selectTicketReport } from "../selectors";
 import type { RalphOutputs, Ticket } from "../selectors";
 import React, { type ReactNode } from "react";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { type MergeQueueOrderingStrategy } from "../mergeQueue/coordinator";
 import { computePipelineStage, isJobComplete, type TicketSchedule, type TicketState } from "./TicketScheduler";
 import { TicketScheduler } from "./TicketScheduler";

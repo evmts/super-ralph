@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 
 export type CrossRunTicketState = {
   ticketId: string;
