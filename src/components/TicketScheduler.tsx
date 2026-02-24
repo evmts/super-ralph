@@ -22,6 +22,7 @@ export const ticketScheduleSchema = z.object({
     agentId: z.string(),
     resumeAtMs: z.number().describe("Epoch ms when to resume using this agent"),
   })).describe("Agents the scheduler determines are rate-limited"),
+  triggerCodebaseReview: z.boolean().describe("Whether to run codebase category reviews this iteration — set true on the first iteration to audit all focus areas, false once reviews are complete"),
   triggerDiscovery: z.boolean().describe("Whether to trigger ticket discovery this iteration — set true when the active ticket count is low relative to concurrency cap, or when most tickets are near completion"),
   triggerIntegrationTests: z.array(z.string()).describe("Category IDs to run integration tests for this iteration (empty = none)"),
   triggerProgressUpdate: z.boolean().describe("Whether to run a progress update this iteration"),
@@ -141,20 +142,23 @@ You control the ENTIRE concurrency window. Decide ALL of these:
 ### 1. Ticket Pipeline Assignments
 Assign agents to tickets. Include ALL tickets in the \`assignments\` array.
 
-### 2. Trigger Discovery (\`triggerDiscovery\`)
+### 2. Trigger Codebase Review (\`triggerCodebaseReview\`)
+Set \`true\` on the first iteration to audit all focus areas. Set \`false\` once reviews have completed — they only need to run once.
+
+### 3. Trigger Discovery (\`triggerDiscovery\`)
 Set \`true\` when:
 - Active tickets < concurrency cap (we have idle slots)
 - Most active tickets are near completion (report/land stage)
 - No unfinished tickets exist
 - We haven't discovered enough tickets to fill the pipeline
 
-### 3. Integration Tests (\`triggerIntegrationTests\`)
+### 4. Integration Tests (\`triggerIntegrationTests\`)
 List category IDs (e.g. "cat-11-webhooks") to run integration tests for. Run these when:
 - A category's tickets have all been implemented
 - You want to validate a category's overall health
 - Keep this sparse — don't test every category every iteration
 
-### 4. Progress Update (\`triggerProgressUpdate\`)
+### 5. Progress Update (\`triggerProgressUpdate\`)
 Set \`true\` every ~3 iterations, or when significant tickets have landed.
 
 ## Scheduling Rules

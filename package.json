@@ -1,6 +1,6 @@
 {
   "name": "super-ralph",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Reusable Ralph workflow pattern - ticket-driven development with multi-agent review loops",
   "author": "William Cory",
   "license": "MIT",

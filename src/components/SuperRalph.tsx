@@ -327,8 +327,8 @@ export function SuperRalph({
           />
         )}
 
-        {/* Progress update: triggered by scheduler or on first iteration */}
-        {!skipPhases.has("PROGRESS") && (schedulerOutput?.triggerProgressUpdate || !schedulerOutput) && (customUpdateProgress || (
+        {/* Progress update: only when scheduler says so */}
+        {!skipPhases.has("PROGRESS") && schedulerOutput?.triggerProgressUpdate && (customUpdateProgress || (
           <Worktree id="wt-update-progress" path="/tmp/workflow-wt-update-progress">
             <Task id="update-progress" output={outputs.progress} agent={buildAgentList(agentPool, undefined, 1)} retries={taskRetries}>
               <UpdateProgressPrompt
@@ -341,7 +341,8 @@ export function SuperRalph({
           </Worktree>
         ))}
 
-        {!skipPhases.has("CODEBASE_REVIEW") && (customCategoryReview ? (
+        {/* Codebase reviews: only when scheduler says so */}
+        {!skipPhases.has("CODEBASE_REVIEW") && schedulerOutput?.triggerCodebaseReview && (customCategoryReview ? (
           customCategoryReview
         ) : (
           <Parallel maxConcurrency={maxConcurrency}>
@@ -355,8 +356,8 @@ export function SuperRalph({
           </Parallel>
         ))}
 
-        {/* Discovery: triggered by scheduler or when no tickets exist */}
-        {!skipPhases.has("DISCOVER") && (schedulerOutput?.triggerDiscovery || unfinishedTickets.length === 0) && (customDiscover || (
+        {/* Discovery: only when scheduler says so */}
+        {!skipPhases.has("DISCOVER") && schedulerOutput?.triggerDiscovery && (customDiscover || (
           <Worktree id="wt-discover" path="/tmp/workflow-wt-discover">
             <Task id="discover" output={outputs.discover} agent={buildAgentList(agentPool, undefined, 2)} retries={taskRetries}>
               <DiscoverPrompt
@@ -379,7 +380,7 @@ export function SuperRalph({
               const scheduledCategories = schedulerOutput?.triggerIntegrationTests ?? [];
               const categoriesToTest = scheduledCategories.length > 0
                 ? focuses.filter(({ id }) => scheduledCategories.includes(id))
-                : (schedulerOutput ? [] : focuses); // If no scheduler output yet, run all (first iteration)
+                : []; // Only run what the scheduler explicitly requests
               return categoriesToTest.map(({ id, name }, testIdx) => {
                 const suiteInfo = focusTestSuites[id] ?? { suites: [], setupHints: [], testDirs: [] };
                 return (
