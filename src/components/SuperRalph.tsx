@@ -124,7 +124,7 @@ export function SuperRalph({
     }));
 
   // --- Derive active jobs purely from smithers DB state ---
-  const schedulerOutput = ctx.outputMaybe("ticket_schedule" as any, { nodeId: "ticket-scheduler" }) as TicketSchedule | undefined;
+  const schedulerOutput = ctx.latest("ticket_schedule", "ticket-scheduler") as TicketSchedule | undefined;
   const activeJobs: ScheduledJob[] = (schedulerOutput?.jobs ?? [])
     .map(job => ({ jobId: job.jobId, jobType: job.jobType, agentId: job.agentId, ticketId: job.ticketId ?? null, focusId: job.focusId ?? null, createdAtMs: Date.now() }))
     .filter(job => !isJobComplete(ctx, job));

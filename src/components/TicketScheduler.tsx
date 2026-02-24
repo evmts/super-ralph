@@ -61,7 +61,7 @@ const PIPELINE_STAGES_REVERSE = [
 
 export function computePipelineStage(ctx: SmithersCtx<any>, ticketId: string): string {
   for (const entry of PIPELINE_STAGES_REVERSE) {
-    if (ctx.outputMaybe(entry.output, { nodeId: entry.nodeId(ticketId) })) {
+    if (ctx.latest(entry.output, entry.nodeId(ticketId))) {
       return entry.stage;
     }
   }
@@ -99,7 +99,7 @@ export function jobNodeId(job: { jobId: string; jobType: string }): string {
 export function isJobComplete(ctx: SmithersCtx<any>, job: ScheduledJob): boolean {
   const outputKey = JOB_TYPE_TO_OUTPUT_KEY[job.jobType];
   if (!outputKey) return false;
-  return !!ctx.outputMaybe(outputKey, { nodeId: jobNodeId(job) });
+  return !!ctx.latest(outputKey, jobNodeId(job));
 }
 
 // --- Component ---

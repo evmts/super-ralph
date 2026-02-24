@@ -76,7 +76,7 @@ export function selectReviewTickets(
   const summaryParts: string[] = [];
 
   for (const { id } of focuses) {
-    const review = ctx.outputMaybe("category_review", { nodeId: `codebase-review:${id}` });
+    const review = ctx.latest("category_review", `codebase-review:${id}`);
     if (review && Array.isArray((review as any).suggestedTickets)) {
       for (const candidate of (review as any).suggestedTickets) {
         const normalized = normalizeTicket(candidate);
@@ -95,7 +95,7 @@ export function selectReviewTickets(
 }
 
 export function selectDiscoverTickets(ctx: SmithersCtx<RalphOutputs>): Ticket[] {
-  const discoverOutput = ctx.outputMaybe("discover", { nodeId: "discover" });
+  const discoverOutput = ctx.latest("discover", "discover");
   if (!discoverOutput || !Array.isArray((discoverOutput as any).tickets)) return [];
   const normalized: Ticket[] = [];
   for (const candidate of (discoverOutput as any).tickets) {
@@ -115,7 +115,7 @@ export function selectCompletedTicketIds(ctx: SmithersCtx<RalphOutputs>, tickets
 }
 
 export function selectProgressSummary(ctx: SmithersCtx<RalphOutputs>): string | null {
-  const progress = ctx.outputMaybe("progress", { nodeId: "update-progress" });
+  const progress = ctx.latest("progress", "update-progress");
   return (progress as any)?.summary ?? null;
 }
 
@@ -147,31 +147,31 @@ export function selectTicketReport(ctx: SmithersCtx<RalphOutputs>, ticketId: str
 }
 
 export function selectResearch(ctx: SmithersCtx<RalphOutputs>, ticketId: string) {
-  return ctx.outputMaybe("research", { nodeId: `${ticketId}:research` }) as 
+  return ctx.latest("research", `${ticketId}:research`) as 
     | { contextFilePath: string; summary: string }
     | undefined;
 }
 
 export function selectPlan(ctx: SmithersCtx<RalphOutputs>, ticketId: string) {
-  return ctx.outputMaybe("plan", { nodeId: `${ticketId}:plan` }) as
+  return ctx.latest("plan", `${ticketId}:plan`) as
     | { planFilePath: string; implementationSteps: string[] | null }
     | undefined;
 }
 
 export function selectImplement(ctx: SmithersCtx<RalphOutputs>, ticketId: string) {
-  return ctx.outputMaybe("implement", { nodeId: `${ticketId}:implement` }) as
+  return ctx.latest("implement", `${ticketId}:implement`) as
     | { whatWasDone: string; filesCreated: string[] | null; filesModified: string[] | null; nextSteps: string | null }
     | undefined;
 }
 
 export function selectTestResults(ctx: SmithersCtx<RalphOutputs>, ticketId: string) {
-  return ctx.outputMaybe("test_results", { nodeId: `${ticketId}:test` }) as
+  return ctx.latest("test_results", `${ticketId}:test`) as
     | { goTestsPassed: boolean; rustTestsPassed: boolean; e2eTestsPassed: boolean; sqlcGenPassed: boolean; failingSummary: string | null }
     | undefined;
 }
 
 export function selectSpecReview(ctx: SmithersCtx<RalphOutputs>, ticketId: string) {
-  return ctx.outputMaybe("spec_review", { nodeId: `${ticketId}:spec-review` }) as
+  return ctx.latest("spec_review", `${ticketId}:spec-review`) as
     | { severity: "none" | "minor" | "major" | "critical"; feedback: string; issues: string[] | null }
     | undefined;
 }
@@ -183,13 +183,13 @@ export function selectLand(ctx: SmithersCtx<RalphOutputs>, ticketId: string) {
 }
 
 export function selectCodeReviews(ctx: SmithersCtx<RalphOutputs>, ticketId: string) {
-  const claude = ctx.outputMaybe("code_review", { nodeId: `${ticketId}:code-review` }) as
+  const claude = ctx.latest("code_review", `${ticketId}:code-review`) as
     | { severity: string; feedback: string; issues: string[] | null }
     | undefined;
-  const codex = ctx.outputMaybe("code_review_codex", { nodeId: `${ticketId}:code-review-codex` }) as
+  const codex = ctx.latest("code_review_codex", `${ticketId}:code-review-codex`) as
     | { severity: string; feedback: string; issues: string[] | null }
     | undefined;
-  const gemini = ctx.outputMaybe("code_review_gemini", { nodeId: `${ticketId}:code-review-gemini` }) as
+  const gemini = ctx.latest("code_review_gemini", `${ticketId}:code-review-gemini`) as
     | { severity: string; feedback: string; issues: string[] | null }
     | undefined;
 
@@ -222,28 +222,28 @@ export function selectCodeReviews(ctx: SmithersCtx<RalphOutputs>, ticketId: stri
 }
 
 export function selectClarifyingQuestions(ctx: SmithersCtx<RalphOutputs>) {
-  return ctx.outputMaybe("clarifying_questions", { nodeId: "clarifying-questions" });
+  return ctx.latest("clarifying_questions", "clarifying-questions");
 }
 
 export function selectInterpretConfig(ctx: SmithersCtx<RalphOutputs>) {
-  return ctx.outputMaybe("interpret_config", { nodeId: "interpret-config" });
+  return ctx.latest("interpret_config", "interpret-config");
 }
 
 export function selectMonitor(ctx: SmithersCtx<RalphOutputs>) {
-  return ctx.outputMaybe("monitor", { nodeId: "monitor" });
+  return ctx.latest("monitor", "monitor");
 }
 
 export function selectTicketPipelineStage(ctx: SmithersCtx<RalphOutputs>, ticketId: string): string {
-  const land = ctx.latest?.("land", `${ticketId}:land`);
+  const land = ctx.latest("land", `${ticketId}:land`);
   if ((land as any)?.merged) return "landed";
-  if (ctx.outputMaybe("report", { nodeId: `${ticketId}:report` })) return "report";
-  if (ctx.outputMaybe("review_fix", { nodeId: `${ticketId}:review-fix` })) return "review_fix";
-  if (ctx.outputMaybe("code_review", { nodeId: `${ticketId}:code-review` })) return "code_review";
-  if (ctx.outputMaybe("spec_review", { nodeId: `${ticketId}:spec-review` })) return "spec_review";
-  if (ctx.outputMaybe("build_verify", { nodeId: `${ticketId}:build-verify` })) return "build_verify";
-  if (ctx.outputMaybe("test_results", { nodeId: `${ticketId}:test` })) return "test";
-  if (ctx.outputMaybe("implement", { nodeId: `${ticketId}:implement` })) return "implement";
-  if (ctx.outputMaybe("plan", { nodeId: `${ticketId}:plan` })) return "plan";
-  if (ctx.outputMaybe("research", { nodeId: `${ticketId}:research` })) return "research";
+  if (ctx.latest("report", `${ticketId}:report`)) return "report";
+  if (ctx.latest("review_fix", `${ticketId}:review-fix`)) return "review_fix";
+  if (ctx.latest("code_review", `${ticketId}:code-review`)) return "code_review";
+  if (ctx.latest("spec_review", `${ticketId}:spec-review`)) return "spec_review";
+  if (ctx.latest("build_verify", `${ticketId}:build-verify`)) return "build_verify";
+  if (ctx.latest("test_results", `${ticketId}:test`)) return "test";
+  if (ctx.latest("implement", `${ticketId}:implement`)) return "implement";
+  if (ctx.latest("plan", `${ticketId}:plan`)) return "plan";
+  if (ctx.latest("research", `${ticketId}:research`)) return "research";
   return "not_started";
 }
