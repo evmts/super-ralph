@@ -9,7 +9,7 @@ import { computePipelineStage, isJobComplete, type TicketSchedule, type TicketSt
 import { TicketScheduler } from "./TicketScheduler";
 import { AgenticMergeQueue } from "./AgenticMergeQueue";
 import { Job } from "./Job";
-import { ensureTable, insertJob, removeJob, getActiveJobs } from "../scheduledTasks";
+import { ensureTable, insertJob, removeJob, getActiveJobs, type ScheduledJob } from "../scheduledTasks";
 
 // --- Props ---
 
@@ -137,7 +137,10 @@ export function SuperRalph({
   const schedulerOutput = ctx.outputMaybe("ticket_schedule" as any, { nodeId: "ticket-scheduler" }) as TicketSchedule | undefined;
   if (schedulerOutput?.jobs) {
     for (const job of schedulerOutput.jobs) {
-      insertJob(db, { jobId: job.jobId, jobType: job.jobType, agentId: job.agentId, ticketId: job.ticketId ?? null, focusId: job.focusId ?? null, createdAtMs: Date.now() });
+      const scheduled: ScheduledJob = { jobId: job.jobId, jobType: job.jobType, agentId: job.agentId, ticketId: job.ticketId ?? null, focusId: job.focusId ?? null, createdAtMs: Date.now() };
+      if (!isJobComplete(ctx, scheduled)) {
+        insertJob(db, scheduled);
+      }
     }
   }
 
