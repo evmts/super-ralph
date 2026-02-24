@@ -4,6 +4,7 @@ import type { SmithersCtx, AgentLike } from "smithers-orchestrator";
 import { selectResearch, selectPlan, selectImplement, selectTestResults, selectSpecReview, selectCodeReviews, selectLand } from "../selectors";
 import type { RalphOutputs, Ticket } from "../selectors";
 import type { ScheduledJob } from "../scheduledTasks";
+import { jobNodeId } from "./TicketScheduler";
 import UpdateProgressPrompt from "../prompts/UpdateProgress.mdx";
 import DiscoverPrompt from "../prompts/Discover.mdx";
 import IntegrationTestPrompt from "../prompts/IntegrationTest.mdx";
@@ -79,7 +80,7 @@ export function Job({
     // --- Global jobs ---
     case "discovery":
       return wrapWorktree("discover",
-        <Task id={job.jobId} output={outputs.discover} agent={agent} retries={retries}>
+        <Task id={jobNodeId(job)} output={outputs.discover} agent={agent} retries={retries}>
           <DiscoverPrompt
             projectName={projectName} specsPath={specsPath} referenceFiles={referenceFiles}
             categories={focuses} completedTicketIds={completedTicketIds}
@@ -90,7 +91,7 @@ export function Job({
 
     case "progress-update":
       return wrapWorktree("update-progress",
-        <Task id={job.jobId} output={outputs.progress} agent={agent} retries={retries}>
+        <Task id={jobNodeId(job)} output={outputs.progress} agent={agent} retries={retries}>
           <UpdateProgressPrompt
             projectName={projectName} progressFile={progressFile}
             commitMessage={`${prefix} docs: update progress`} completedTickets={completedTicketIds}
@@ -102,7 +103,7 @@ export function Job({
       const focus = job.focusId ? focusMap.get(job.focusId) : null;
       if (!focus) return null;
       return wrapWorktree(`codebase-review-${focus.id}`,
-        <Task id={job.jobId} output={outputs.category_review} agent={agent} retries={retries}>
+        <Task id={jobNodeId(job)} output={outputs.category_review} agent={agent} retries={retries}>
           <CategoryReviewPrompt categoryId={focus.id} categoryName={focus.name} relevantDirs={focusDirs[focus.id] ?? null} />
         </Task>
       );
@@ -113,7 +114,7 @@ export function Job({
       if (!focus) return null;
       const suiteInfo = focusTestSuites[focus.id] ?? { suites: [], setupHints: [], testDirs: [] };
       return wrapWorktree(`integration-test-${focus.id}`,
-        <Task id={job.jobId} output={outputs.integration_test} agent={agent} retries={retries}>
+        <Task id={jobNodeId(job)} output={outputs.integration_test} agent={agent} retries={retries}>
           <IntegrationTestPrompt
             categoryId={focus.id} categoryName={focus.name}
             suites={suiteInfo.suites} setupHints={suiteInfo.setupHints}
@@ -160,7 +161,7 @@ export function Job({
         switch (stage) {
           case "research":
             return (
-              <Task id={job.jobId} output={outputs.research} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.research} agent={agent} retries={retries}>
                 <ResearchPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketDescription={ticket.description}
                   ticketCategory={ticket.category} referenceFiles={ticket.referenceFiles ?? []}
@@ -171,7 +172,7 @@ export function Job({
             );
           case "plan":
             return (
-              <Task id={job.jobId} output={outputs.plan} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.plan} agent={agent} retries={retries}>
                 <PlanPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketDescription={ticket.description}
                   ticketCategory={ticket.category} acceptanceCriteria={ticket.acceptanceCriteria ?? []}
@@ -184,7 +185,7 @@ export function Job({
             );
           case "implement":
             return (
-              <Task id={job.jobId} output={outputs.implement} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.implement} agent={agent} retries={retries}>
                 <ImplementPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketCategory={ticket.category}
                   planFilePath={planFilePath} contextFilePath={contextFilePath}
@@ -202,7 +203,7 @@ export function Job({
             );
           case "test":
             return (
-              <Task id={job.jobId} output={outputs.test_results} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.test_results} agent={agent} retries={retries}>
                 <TestPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketCategory={ticket.category}
                   testSuites={testSuites.length > 0 ? testSuites : Object.entries(testCmds).map(([name, command]) => ({
@@ -214,7 +215,7 @@ export function Job({
             );
           case "build-verify":
             return (
-              <Task id={job.jobId} output={outputs.build_verify} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.build_verify} agent={agent} retries={retries}>
                 <BuildVerifyPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketCategory={ticket.category}
                   filesCreated={latestImpl?.filesCreated ?? null} filesModified={latestImpl?.filesModified ?? null}
@@ -224,7 +225,7 @@ export function Job({
             );
           case "spec-review":
             return (
-              <Task id={job.jobId} output={outputs.spec_review} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.spec_review} agent={agent} retries={retries}>
                 <SpecReviewPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketCategory={ticket.category}
                   filesCreated={latestImpl?.filesCreated ?? null} filesModified={latestImpl?.filesModified ?? null}
@@ -239,7 +240,7 @@ export function Job({
             );
           case "code-review":
             return (
-              <Task id={job.jobId} output={outputs.code_review} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.code_review} agent={agent} retries={retries}>
                 <CodeReviewPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketCategory={ticket.category}
                   filesCreated={latestImpl?.filesCreated ?? null} filesModified={latestImpl?.filesModified ?? null}
@@ -249,7 +250,7 @@ export function Job({
             );
           case "review-fix":
             return (
-              <Task id={job.jobId} output={outputs.review_fix} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.review_fix} agent={agent} retries={retries}>
                 <ReviewFixPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketCategory={ticket.category}
                   specSeverity={latestSpecReview?.severity ?? "none"} specFeedback={latestSpecReview?.feedback ?? ""}
@@ -262,7 +263,7 @@ export function Job({
             );
           case "report":
             return (
-              <Task id={job.jobId} output={outputs.report} agent={agent} retries={retries}>
+              <Task id={jobNodeId(job)} output={outputs.report} agent={agent} retries={retries}>
                 <ReportPrompt
                   ticketId={ticket.id} ticketTitle={ticket.title} ticketCategory={ticket.category}
                   acceptanceCriteria={ticket.acceptanceCriteria ?? []}

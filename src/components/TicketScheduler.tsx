@@ -85,11 +85,21 @@ export const JOB_TYPE_TO_OUTPUT_KEY: Record<string, string> = {
   "ticket:report": "report",
 };
 
+/** Map jobId to the nodeId that selectors expect */
+const GLOBAL_JOB_NODE_IDS: Record<string, string> = {
+  "discovery": "discover",
+  "progress-update": "update-progress",
+};
+
+export function jobNodeId(job: { jobId: string; jobType: string }): string {
+  return GLOBAL_JOB_NODE_IDS[job.jobId] ?? job.jobId;
+}
+
 /** Check if a scheduled job has already completed (output exists in Smithers) */
 export function isJobComplete(ctx: SmithersCtx<any>, job: ScheduledJob): boolean {
   const outputKey = JOB_TYPE_TO_OUTPUT_KEY[job.jobType];
   if (!outputKey) return false;
-  return !!ctx.outputMaybe(outputKey, { nodeId: job.jobId });
+  return !!ctx.outputMaybe(outputKey, { nodeId: jobNodeId(job) });
 }
 
 // --- Component ---

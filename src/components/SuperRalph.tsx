@@ -3,13 +3,12 @@ import type { SmithersCtx, AgentLike } from "smithers-orchestrator";
 import { selectAllTickets, selectReviewTickets, selectProgressSummary, selectLand, selectTicketReport } from "../selectors";
 import type { RalphOutputs, Ticket } from "../selectors";
 import React, { type ReactNode } from "react";
-import { Database } from "bun:sqlite";
 import { type MergeQueueOrderingStrategy } from "../mergeQueue/coordinator";
 import { computePipelineStage, isJobComplete, type TicketSchedule, type TicketState } from "./TicketScheduler";
 import { TicketScheduler } from "./TicketScheduler";
 import { AgenticMergeQueue } from "./AgenticMergeQueue";
 import { Job } from "./Job";
-import { ensureTable, insertJob, removeJob, getActiveJobs, type ScheduledJob } from "../scheduledTasks";
+import type { ScheduledJob } from "../scheduledTasks";
 
 // --- Props ---
 
@@ -37,7 +36,6 @@ export type SuperRalphProps = {
     isMergeQueue?: boolean;
   }>;
 
-  dbPath?: string;
   progressFile?: string;
   findingsFile?: string;
   commitConfig?: { prefix?: string; mainBranch?: string; emojiPrefixes?: string };
@@ -73,7 +71,6 @@ export function SuperRalph({
   projectId, projectName, specsPath, referenceFiles, buildCmds, testCmds,
   codeStyle, reviewChecklist, maxConcurrency, taskRetries = 3,
   agents: agentPool,
-  dbPath = "./scheduled-tasks.db",
   progressFile = "PROGRESS.md",
   findingsFile = "docs/test-suite-findings.md",
   commitConfig = {},
@@ -126,27 +123,12 @@ export function SuperRalph({
       worktreePath: `/tmp/workflow-wt-${t.ticket.id}`,
     }));
 
-  // --- Scheduled tasks: reap → reconcile → read ---
-  const db = new Database(dbPath);
-  ensureTable(db);
-
-  for (const job of getActiveJobs(db)) {
-    if (isJobComplete(ctx, job)) removeJob(db, job.jobId);
-  }
-
+  // --- Derive active jobs purely from smithers DB state ---
   const schedulerOutput = ctx.outputMaybe("ticket_schedule" as any, { nodeId: "ticket-scheduler" }) as TicketSchedule | undefined;
-  if (schedulerOutput?.jobs) {
-    for (const job of schedulerOutput.jobs) {
-      const scheduled: ScheduledJob = { jobId: job.jobId, jobType: job.jobType, agentId: job.agentId, ticketId: job.ticketId ?? null, focusId: job.focusId ?? null, createdAtMs: Date.now() };
-      if (!isJobComplete(ctx, scheduled)) {
-        insertJob(db, scheduled);
-      }
-    }
-  }
-
-  const activeJobs = getActiveJobs(db);
+  const activeJobs: ScheduledJob[] = (schedulerOutput?.jobs ?? [])
+    .map(job => ({ jobId: job.jobId, jobType: job.jobType, agentId: job.agentId, ticketId: job.ticketId ?? null, focusId: job.focusId ?? null, createdAtMs: Date.now() }))
+    .filter(job => !isJobComplete(ctx, job));
   const activeCount = activeJobs.length;
-  db.close();
 
   // Shared props for <Job /> components
   const jobProps = {
