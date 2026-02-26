@@ -141,8 +141,9 @@ export function SuperRalph({
   };
 
   return (
-    <Ralph until={false} maxIterations={Infinity} onMaxReached="return-last">
-      <Parallel maxConcurrency={maxConcurrency}>
+    <>
+      {/* Scheduler loop - runs continuously, schedules jobs whenever there's capacity */}
+      <Ralph until={false} maxIterations={Infinity} onMaxReached="return-last">
         {activeCount < maxConcurrency && (
           <TicketScheduler
             ctx={ctx} ticketStates={ticketStates} activeJobs={activeJobs}
@@ -151,11 +152,19 @@ export function SuperRalph({
             output={outputs.ticket_schedule} completedTicketIds={completedTicketIds}
           />
         )}
+      </Ralph>
 
-        {activeJobs.map(job => (
-          <Job key={job.jobId} job={job} agent={resolveAgent(agentPool, job.agentId)} {...jobProps} />
-        ))}
+      {/* Execution loop - runs scheduled jobs in parallel */}
+      <Ralph until={false} maxIterations={Infinity} onMaxReached="return-last">
+        <Parallel maxConcurrency={maxConcurrency}>
+          {activeJobs.map(job => (
+            <Job key={job.jobId} job={job} agent={resolveAgent(agentPool, job.agentId)} {...jobProps} />
+          ))}
+        </Parallel>
+      </Ralph>
 
+      {/* Merge queue loop - runs independently */}
+      <Ralph until={false} maxIterations={Infinity} onMaxReached="return-last">
         <AgenticMergeQueue
           ctx={ctx} outputs={outputs} tickets={mergeQueueTickets}
           agent={resolveAgent(agentPool, mergeQueueAgentId)}
@@ -163,7 +172,7 @@ export function SuperRalph({
           repoRoot={process.cwd()} mainBranch={mainBranch}
           maxSpeculativeDepth={maxSpeculativeDepth} output={outputs.land}
         />
-      </Parallel>
-    </Ralph>
+      </Ralph>
+    </>
   );
 }
