@@ -8,6 +8,7 @@ import { computePipelineStage, isJobComplete, type TicketSchedule, type TicketSt
 import { TicketScheduler } from "./TicketScheduler";
 import { AgenticMergeQueue } from "./AgenticMergeQueue";
 import { Job } from "./Job";
+import { Monitor } from "./Monitor";
 import type { ScheduledJob } from "../scheduledTasks";
 
 // --- Props ---
@@ -62,6 +63,30 @@ function buildAgentPoolDescription(pool: AgentPool): string {
   if (entries.length === 0) return "(no agents registered)";
   const rows = entries.map(([id, { description }]) => `| ${id} | ${description} |`);
   return ["| Agent ID | Description |", "|----------|-------------|", ...rows].join("\n");
+}
+
+/**
+ * Check if there are any tickets that can advance to their next pipeline stage.
+ * A ticket can advance if it has completed its current stage but hasn't landed yet.
+ */
+function hasTicketsReadyToAdvance(ticketStates: TicketState[]): boolean {
+  return ticketStates.some(t => {
+    // If ticket has landed or report is complete, it's done
+    if (t.landed || t.reportComplete) return false;
+
+    // Tickets at any stage can potentially advance to the next stage
+    // as long as they haven't completed the entire pipeline
+    const stage = t.pipelineStage;
+    return stage === "research" ||
+           stage === "plan" ||
+           stage === "implement" ||
+           stage === "test" ||
+           stage === "build_verify" ||
+           stage === "spec_review" ||
+           stage === "code_review" ||
+           stage === "review_fix" ||
+           stage === "not_started";
+  });
 }
 
 // --- Main Component ---
@@ -123,10 +148,26 @@ export function SuperRalph({
       worktreePath: `/tmp/workflow-wt-${t.ticket.id}`,
     }));
 
-  // --- Derive active jobs purely from smithers DB state ---
-  const schedulerOutput = ctx.latest("ticket_schedule", "ticket-scheduler") as TicketSchedule | undefined;
-  const activeJobs: ScheduledJob[] = (schedulerOutput?.jobs ?? [])
-    .map(job => ({ jobId: job.jobId, jobType: job.jobType, agentId: job.agentId, ticketId: job.ticketId ?? null, focusId: job.focusId ?? null, createdAtMs: Date.now() }))
+  // --- Derive active jobs from ALL scheduler outputs (not just the latest) ---
+  // This ensures jobs from earlier scheduler iterations aren't lost when
+  // a new schedule is produced before previous jobs complete.
+  const allSchedules = ctx.outputs("ticket_schedule") as Array<any>;
+  const jobsByJobId = new Map<string, ScheduledJob>();
+  for (const schedule of allSchedules) {
+    const jobs = Array.isArray(schedule?.jobs) ? schedule.jobs : [];
+    for (const job of jobs) {
+      if (!job?.jobId) continue;
+      jobsByJobId.set(job.jobId, {
+        jobId: job.jobId,
+        jobType: job.jobType,
+        agentId: job.agentId,
+        ticketId: job.ticketId ?? null,
+        focusId: job.focusId ?? null,
+        createdAtMs: Date.now(),
+      });
+    }
+  }
+  const activeJobs: ScheduledJob[] = [...jobsByJobId.values()]
     .filter(job => !isJobComplete(ctx, job));
   const activeCount = activeJobs.length;
 
@@ -152,6 +193,10 @@ export function SuperRalph({
             output={outputs.ticket_schedule} completedTicketIds={completedTicketIds}
           />
         )}
+        <Monitor
+          ctx={ctx} output={outputs.monitor} activeJobs={activeJobs}
+          ticketStates={ticketStates} maxConcurrency={maxConcurrency}
+        />
       </Ralph>
 
       {/* Execution loop - runs scheduled jobs in parallel */}
